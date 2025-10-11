@@ -5,10 +5,13 @@ import { LivroNaoEncontradoException } from './exceptions/livro-nao-encontrado.e
 import { CapituloInvalidoException } from './exceptions/capitulo-invalido.exception';
 import bibliaNVI from '../../data/biblia-nvi.json';
 import type { BibliaNVI, LivroBiblico } from '../../data/biblia-nvi.type';
+import { PrismaService } from '../../modules/prisma/prisma.service';
 
 @Injectable()
 export class PesquisaService {
   private biblia: BibliaNVI = bibliaNVI as BibliaNVI;
+
+  constructor(private readonly prisma: PrismaService) {}
 
   // Regex para validar formato de capítulo
   private readonly REGEX_CAPITULO = /^\d+$/;
@@ -28,6 +31,17 @@ export class PesquisaService {
     'terceiro': '3',
     'terceira': '3',
   };
+
+  /**
+   * Gera slug do livro para busca no banco de dados
+   */
+  private gerarLivroSlug(nomeLivro: string): string {
+    return nomeLivro
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/\s+/g, '');
+  }
 
   /**
    * Normaliza texto removendo acentos, convertendo para lowercase e removendo espaços extras
@@ -177,7 +191,7 @@ export class PesquisaService {
       .map(item => item.nome);
   }
 
-  buscarVersiculos(pesquisaDto: PesquisaRequestDto): PesquisaResponseDto {
+  async buscarVersiculos(pesquisaDto: PesquisaRequestDto): Promise<PesquisaResponseDto> {
     // Valida formato do capítulo
     const capituloTrimmed = pesquisaDto.capitulo.trim();
     if (!this.REGEX_CAPITULO.test(capituloTrimmed)) {
@@ -213,11 +227,69 @@ export class PesquisaService {
     // Retorna apenas o capítulo solicitado
     const versiculos = livro.chapters[numeroCapitulo - 1];
 
+    // Gera slug do livro para buscar no banco
+    const livroSlug = this.gerarLivroSlug(livro.name);
+
+    // Busca comentários do banco de dados
+    const comentariosDoBanco = await this.prisma.comentarios.findMany({
+      where: { 
+        livroSlug, 
+        capitulo: numeroCapitulo, 
+        isDeleted: false 
+      },
+      select: { 
+        versiculo: true,
+        texto: true 
+      }
+    });
+
+    // Busca referências do banco de dados
+    const referenciasDoBanco = await this.prisma.referencias.findMany({
+      where: { 
+        livroSlug, 
+        capitulo: numeroCapitulo, 
+        isDeleted: false 
+      },
+      select: { 
+        versiculo: true,
+        referencia: true 
+      }
+    });
+
+    // Agrupa comentários por versículo
+    const comentariosPorVersiculo = new Map<number, string[]>();
+    comentariosDoBanco.forEach(comentario => {
+      if (!comentariosPorVersiculo.has(comentario.versiculo)) {
+        comentariosPorVersiculo.set(comentario.versiculo, []);
+      }
+      comentariosPorVersiculo.get(comentario.versiculo)!.push(comentario.texto);
+    });
+
+    // Agrupa referências por versículo
+    const referenciasPorVersiculo = new Map<number, string[]>();
+    referenciasDoBanco.forEach(referencia => {
+      if (!referenciasPorVersiculo.has(referencia.versiculo)) {
+        referenciasPorVersiculo.set(referencia.versiculo, []);
+      }
+      referenciasPorVersiculo.get(referencia.versiculo)!.push(referencia.referencia);
+    });
+
+    // Estrutura a resposta com versículos contendo texto, comentários e referências
+    const versiculosComDados = versiculos.map((texto, index) => {
+      const numeroVersiculo = index + 1;
+      return {
+        numero: numeroVersiculo,
+        texto,
+        comentarios: comentariosPorVersiculo.get(numeroVersiculo) || [],
+        referencias: referenciasPorVersiculo.get(numeroVersiculo) || []
+      };
+    });
+
     return {
       livro: livro.name,
       abreviacao: livro.abbrev,
       capitulo: numeroCapitulo,
-      versiculos: versiculos,
+      versiculos: versiculosComDados,
       totalVersiculos: versiculos.length
     };
   }

@@ -43,7 +43,7 @@ export class PesquisaController {
       }
     }
   })
-  buscarVersiculos(@Body() pesquisaDto: PesquisaRequestDto): PesquisaResponseDto {
-    return this.pesquisaService.buscarVersiculos(pesquisaDto);
+  async buscarVersiculos(@Body() pesquisaDto: PesquisaRequestDto): Promise<PesquisaResponseDto> {
+    return await this.pesquisaService.buscarVersiculos(pesquisaDto);
   }
 }
