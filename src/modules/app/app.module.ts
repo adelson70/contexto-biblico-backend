@@ -3,10 +3,11 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PesquisaModule } from '../pesquisa/pesquisa.module';
 import { ReferenciaModule } from '../referencia/referencia.module';
+import { ComentarioModule } from '../comentario/comentario.module';
 import { PrismaModule } from '../prisma/prisma.module';
 
 @Module({
-  imports: [PrismaModule, PesquisaModule, ReferenciaModule],
+  imports: [PrismaModule, PesquisaModule, ReferenciaModule, ComentarioModule],
   controllers: [AppController],
   providers: [AppService],
 })
