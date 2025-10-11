@@ -1,9 +1,10 @@
-import { Controller, Get, Post, Body, Logger } from '@nestjs/common';
+import { Controller, Get, Post, Body, Logger, UseInterceptors } from '@nestjs/common';
 import { PesquisaService } from './pesquisa.service';
 import { PesquisaRequestDto } from './dto/pesquisa-request.dto';
 import { PesquisaResponseDto } from './dto/pesquisa-response.dto';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { ApiStandardResponse, ApiErrorResponse } from '../../common/decorators/api-response.decorator';
+import { RegistroPesquisaInterceptor } from '../../common/interceptors/registro-pesquisa.interceptor';
 
 @ApiTags('pesquisa')
 @Controller('pesquisa')
@@ -14,6 +15,7 @@ export class PesquisaController {
   ) {}
 
   @Post()
+  @UseInterceptors(RegistroPesquisaInterceptor)
   @ApiOperation({ summary: 'Pesquisar informações sobre um livro bíblico' })
   @ApiStandardResponse(200, 'Pesquisa recuperado com sucesso', PesquisaResponseDto)
   @ApiErrorResponse(
