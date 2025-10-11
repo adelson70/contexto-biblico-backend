@@ -78,7 +78,6 @@ export class AuthService {
     });
 
     return {
-      mensagem: 'Usuário deletado com sucesso',
       id: usuarioId,
     };
   }
