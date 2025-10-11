@@ -4,10 +4,11 @@ import { AppService } from './app.service';
 import { PesquisaModule } from '../pesquisa/pesquisa.module';
 import { ReferenciaModule } from '../referencia/referencia.module';
 import { ComentarioModule } from '../comentario/comentario.module';
+import { AuthModule } from '../auth/auth.module';
 import { PrismaModule } from '../prisma/prisma.module';
 
 @Module({
-  imports: [PrismaModule, PesquisaModule, ReferenciaModule, ComentarioModule],
+  imports: [PrismaModule, PesquisaModule, ReferenciaModule, ComentarioModule, AuthModule],
   controllers: [AppController],
   providers: [AppService],
 })
