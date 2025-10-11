@@ -10,9 +10,9 @@ async function bootstrap() {
   // Habilita validação global
   app.useGlobalPipes(
     new ValidationPipe({
-      whitelist: true, // Remove propriedades não definidas no DTO
-      forbidNonWhitelisted: true, // Lança erro se houver propriedades não permitidas
-      transform: true, // Transforma os dados para os tipos definidos no DTO
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
     })
   );
 
@@ -25,7 +25,7 @@ async function bootstrap() {
   
     const document = SwaggerModule.createDocument(app, config);
   
-  SwaggerModule.setup('docs', app, document);
+  SwaggerModule.setup('docs', app, document, {customSiteTitle: 'Contexto Biblico API'});
 
   await app.listen(process.env.PORT ?? 5000)
     .then(() => {

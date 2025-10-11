@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body } from '@nestjs/common';
+import { Controller, Get, Post, Body, Logger } from '@nestjs/common';
 import { PesquisaService } from './pesquisa.service';
 import { PesquisaRequestDto } from './dto/pesquisa-request.dto';
 import { PesquisaResponseDto } from './dto/pesquisa-response.dto';
@@ -7,7 +7,10 @@ import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 @ApiTags('pesquisa')
 @Controller('pesquisa')
 export class PesquisaController {
-  constructor(private readonly pesquisaService: PesquisaService) {}
+  constructor(
+    private readonly pesquisaService: PesquisaService,
+    private logger: Logger
+  ) {}
 
   @Post()
   @ApiOperation({ summary: 'Pesquisar informações sobre um livro bíblico' })
@@ -44,6 +47,7 @@ export class PesquisaController {
     }
   })
   async buscarVersiculos(@Body() pesquisaDto: PesquisaRequestDto): Promise<PesquisaResponseDto> {
+    this.logger.log("Pesquisando versiculos")
     return await this.pesquisaService.buscarVersiculos(pesquisaDto);
   }
 }
