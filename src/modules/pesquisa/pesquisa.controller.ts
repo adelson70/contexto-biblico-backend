@@ -6,7 +6,7 @@ import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { ApiStandardResponse, ApiErrorResponse } from '../../common/decorators/api-response.decorator';
 import { RegistroPesquisaInterceptor } from '../../common/interceptors/registro-pesquisa.interceptor';
 
-@ApiTags('pesquisa')
+@ApiTags('Pesquisa')
 @Controller('pesquisa')
 export class PesquisaController {
   constructor(

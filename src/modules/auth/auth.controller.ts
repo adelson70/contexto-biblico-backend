@@ -13,7 +13,7 @@ import { JwtRefreshGuard } from '../../guards/jwt-refresh.guard';
 import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
 import { AdminGuard } from '../../guards/admin.guard';
 
-@ApiTags('auth')
+@ApiTags('Usuário')
 @Controller('auth')
 export class AuthController {
   constructor(

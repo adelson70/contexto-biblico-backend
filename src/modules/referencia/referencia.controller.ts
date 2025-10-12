@@ -7,7 +7,7 @@ import { Logger } from '@nestjs/common';
 import { ApiStandardResponse, ApiErrorResponse } from '../../common/decorators/api-response.decorator';
 import { JwtAuthWithRefreshGuard } from '../../guards/jwt-auth-with-refresh.guard';
 
-@ApiTags('referencia')
+@ApiTags('Referência')
 @Controller('referencia')
 export class ReferenciaController {
   constructor(private readonly referenciaService: ReferenciaService, private logger: Logger) {}

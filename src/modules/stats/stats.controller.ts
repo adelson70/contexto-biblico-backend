@@ -10,7 +10,7 @@ import { ReferenciasTotalResponseDTO, ReferenciasPorLivroResponseDTO, Referencia
 import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
 import { ApiStandardResponse } from 'src/common/decorators/api-response.decorator';
 
-@ApiTags('Estatísticas')
+@ApiTags('Estatística')
 @ApiBearerAuth('JWT-auth')
 @UseGuards(JwtAuthGuard)
 @Controller('stats')

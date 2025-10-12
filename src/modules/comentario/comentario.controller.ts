@@ -7,7 +7,7 @@ import { AtualizarComentarioDTO } from './dto/comentario-atualizar.dto';
 import { CriarComentarioResponse } from './dto/comentario-response.dto';
 import { JwtAuthWithRefreshGuard } from '../../guards/jwt-auth-with-refresh.guard';
 
-@ApiTags('comentario')
+@ApiTags('Comentário')
 @Controller('comentario')
 export class ComentarioController {
   constructor(private readonly comentarioService: ComentarioService) {}
