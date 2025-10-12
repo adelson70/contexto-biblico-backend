@@ -20,6 +20,7 @@ model comentarios {
 
   @@index([isDeleted])
   @@index([livroSlug, capitulo, versiculo])
+  @@index([isDeleted, livroSlug, capitulo])
 }
 
 model pesquisas {
@@ -44,6 +45,7 @@ model referencias {
 
   @@index([isDeleted])
   @@index([livroSlug, capitulo, versiculo])
+  @@index([isDeleted, livroSlug, capitulo])
 }
 
 model usuarios {
