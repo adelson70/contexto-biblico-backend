@@ -47,16 +47,18 @@ model referencias {
 }
 
 model usuarios {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
-  nome      String?
-  senha     String
-  is_admin  Boolean  @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now())
-  isDeleted Boolean  @default(false)
+  id               Int      @id @default(autoincrement())
+  email            String   @unique
+  nome             String?
+  senha            String
+  is_admin         Boolean  @default(false)
+  refresh_token_hash String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @default(now())
+  isDeleted        Boolean  @default(false)
 
   @@index([email])
   @@index([isDeleted])
   @@index([is_admin])
+  @@index([refresh_token_hash])
 }
