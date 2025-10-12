@@ -40,7 +40,6 @@ async function bootstrap() {
     .setTitle('Contexto Biblico API')
     .setDescription('API do Contexto Biblico')
     .setVersion('1.0')
-    .addTag('contexto-biblico')
     .addBearerAuth(
       {
         type: 'http',
