@@ -8,10 +8,10 @@ export class CriarComentarioResponse {
     id: number;
 
     @ApiProperty({
-        description: 'Slug do livro',
+        description: 'Livro',
         example: 'genesis'
     })
-    livroSlug: string;
+    livro: string;
 
     @ApiProperty({
         description: 'Número do capítulo',

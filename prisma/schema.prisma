@@ -10,7 +10,7 @@ datasource db {
 
 model comentarios {
   id        Int      @id @default(autoincrement())
-  livroSlug String
+  livro String
   capitulo  Int
   versiculo Int
   texto     String
@@ -19,23 +19,29 @@ model comentarios {
   isDeleted Boolean  @default(false)
 
   @@index([isDeleted])
-  @@index([livroSlug, capitulo, versiculo])
-  @@index([isDeleted, livroSlug, capitulo])
+  @@index([livro, capitulo, versiculo])
+  @@index([isDeleted, livro, capitulo])
 }
 
 model pesquisas {
-  id             Int      @id @default(autoincrement())
-  nome_livro     String
-  ip             String
-  createdAt      DateTime @default(now())
-  capitulo_livro String
+  id               Int      @id @default(autoincrement())
+  nome_livro       String
+  livro_encontrado String?
+  ip               String
+  cidade           String?
+  estado           String?
+  createdAt        DateTime @default(now())
+  capitulo_livro   String
 
   @@index([nome_livro])
+  @@index([livro_encontrado])
+  @@index([estado])
+  @@index([cidade])
 }
 
 model referencias {
   id         Int      @id @default(autoincrement())
-  livroSlug  String
+  livro  String
   capitulo   Int
   versiculo  Int
   referencia String
@@ -44,8 +50,8 @@ model referencias {
   isDeleted  Boolean  @default(false)
 
   @@index([isDeleted])
-  @@index([livroSlug, capitulo, versiculo])
-  @@index([isDeleted, livroSlug, capitulo])
+  @@index([livro, capitulo, versiculo])
+  @@index([isDeleted, livro, capitulo])
 }
 
 model usuarios {

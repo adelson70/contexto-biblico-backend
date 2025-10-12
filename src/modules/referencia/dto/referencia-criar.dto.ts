@@ -13,13 +13,13 @@ export class CriarReferenciaDTO {
     referencia: string;
 
     @ApiProperty({
-        description: 'Slug do livro',
+        description: 'Livro',
         example: 'genesis',
         required: true
     })
-    @IsString({ message: 'O livroSlug deve ser uma string' })
-    @IsNotEmpty({ message: 'O livroSlug não pode estar vazio' })
-    livroSlug: string;
+    @IsString({ message: 'O livro deve ser uma string' })
+    @IsNotEmpty({ message: 'O livro não pode estar vazio' })
+    livro: string;
 
     @ApiProperty({
         description: 'Número do capítulo',

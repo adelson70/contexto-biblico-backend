@@ -11,7 +11,7 @@ export class ComentarioService {
   async criarComentario(comentarioDto: CriarComentarioDTO): Promise<CriarComentarioResponse> {
     const comentario = await this.prisma.comentarios.create({
       data: {
-        livroSlug: comentarioDto.livroSlug,
+        livro: comentarioDto.livro,
         capitulo: comentarioDto.capitulo,
         versiculo: comentarioDto.versiculo,
         texto: comentarioDto.texto,
@@ -20,7 +20,7 @@ export class ComentarioService {
 
     return {
       id: comentario.id,
-      livroSlug: comentario.livroSlug,
+      livro: comentario.livro,
       capitulo: comentario.capitulo,
       versiculo: comentario.versiculo,
       texto: comentario.texto,

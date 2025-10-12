@@ -15,10 +15,10 @@ export class CriarReferenciaResponse {
     referencia: string;
 
     @ApiProperty({
-        description: 'Slug do livro',
+        description: 'Livro',
         example: 'genesis'
     })
-    livroSlug: string;
+    livro: string;
 
     @ApiProperty({
         description: 'Número do capítulo',

@@ -11,7 +11,7 @@ export class ReferenciaService {
     const referencia = await this.prisma.referencias.create({
       data: {
         referencia: referenciaDto.referencia,
-        livroSlug: referenciaDto.livroSlug,
+        livro: referenciaDto.livro,
         capitulo: referenciaDto.capitulo,
         versiculo: referenciaDto.versiculo,
       },
@@ -20,7 +20,7 @@ export class ReferenciaService {
     return {
       id: referencia.id,
       referencia: referenciaDto.referencia,
-      livroSlug: referenciaDto.livroSlug,
+      livro: referenciaDto.livro,
       capitulo: referenciaDto.capitulo,
       versiculo: referenciaDto.versiculo,
     };
