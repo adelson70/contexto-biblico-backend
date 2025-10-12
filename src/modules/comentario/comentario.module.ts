@@ -3,10 +3,12 @@ import { ComentarioController } from './comentario.controller';
 import { ComentarioService } from './comentario.service';
 import { Logger } from '@nestjs/common';
 import { PrismaModule } from '../prisma/prisma.module';
+import { AuthModule } from '../auth/auth.module';
+import { JwtAuthWithRefreshGuard } from '../../guards/jwt-auth-with-refresh.guard';
 
 @Module({
-  imports: [PrismaModule],
+  imports: [PrismaModule, AuthModule],
   controllers: [ComentarioController],
-  providers: [ComentarioService, Logger],
+  providers: [ComentarioService, Logger, JwtAuthWithRefreshGuard],
 })
 export class ComentarioModule {}

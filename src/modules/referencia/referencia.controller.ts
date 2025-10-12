@@ -5,7 +5,7 @@ import { CriarReferenciaResponse } from './dto/referencia-response.dto';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { Logger } from '@nestjs/common';
 import { ApiStandardResponse, ApiErrorResponse } from '../../common/decorators/api-response.decorator';
-import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
+import { JwtAuthWithRefreshGuard } from '../../guards/jwt-auth-with-refresh.guard';
 
 @ApiTags('referencia')
 @Controller('referencia')
@@ -13,7 +13,7 @@ export class ReferenciaController {
   constructor(private readonly referenciaService: ReferenciaService, private logger: Logger) {}
 
   @Post()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthWithRefreshGuard)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Criar uma referência' })
   @ApiStandardResponse(201, 'Referência criada com sucesso', CriarReferenciaResponse)
@@ -27,7 +27,7 @@ export class ReferenciaController {
   }
 
   @Delete(':id')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthWithRefreshGuard)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Deletar uma referência' })
   @ApiStandardResponse(200, 'Referência deletada com sucesso')

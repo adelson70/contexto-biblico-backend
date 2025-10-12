@@ -222,4 +222,15 @@ export class AuthService {
       data: { refresh_token_hash: null },
     });
   }
+
+  async validateRefreshToken(token: string): Promise<JwtPayload | null> {
+    try {
+      const payload = await this.jwtService.verifyAsync(token, {
+        secret: process.env.JWT_REFRESH_SECRET || 'your-refresh-secret-key-change-this',
+      });
+      return payload as JwtPayload;
+    } catch (error) {
+      return null;
+    }
+  }
 }
