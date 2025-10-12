@@ -1,98 +1,289 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Contexto Bíblico - Backend API
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+![NestJS](https://img.shields.io/badge/NestJS-E0234E?style=flat&logo=nestjs&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat&logo=typescript&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?style=flat&logo=postgresql&logoColor=white)
+![Prisma](https://img.shields.io/badge/Prisma-2D3748?style=flat&logo=prisma&logoColor=white)
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+API REST para consulta da Bíblia (versão NVI) com recursos avançados de anotações, referências cruzadas e análise estatística de uso.
 
-## Description
+## Sobre o Projeto
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+O **Contexto Bíblico** é uma plataforma backend desenvolvida para fornecer acesso à Bíblia Sagrada na versão Nova Versão Internacional (NVI), permitindo que usuários consultem versículos, adicionem comentários pessoais, criem referências cruzadas entre passagens e visualizem estatísticas detalhadas sobre o uso da plataforma.
 
-## Project setup
+### Principais Funcionalidades
 
+- **Consulta de Versículos Bíblicos**: Busca completa por livro, capítulo e versículo na Bíblia NVI
+- **Sistema de Comentários**: Criação, edição e exclusão de comentários em versículos específicos
+- **Referências Cruzadas**: Relacionamento entre passagens bíblicas para estudo aprofundado
+- **Autenticação Segura**: Sistema de autenticação JWT com refresh tokens em cookies HttpOnly
+- **Estatísticas Avançadas**: 
+  - Análise temporal (horário, semanal, mensal)
+  - Análise geográfica (por estado e cidade)
+  - Livros e capítulos mais pesquisados
+  - Comentários e referências mais frequentes
+- **Geolocalização**: Rastreamento automático de localização dos usuários via IP
+
+## Tecnologias e Arquitetura
+
+### Stack Principal
+
+- **[NestJS](https://nestjs.com/)**: Framework Node.js progressivo para aplicações server-side
+- **[TypeScript](https://www.typescriptlang.org/)**: Superset JavaScript com tipagem estática
+- **[Prisma](https://www.prisma.io/)**: ORM moderno para TypeScript e Node.js
+- **[PostgreSQL](https://www.postgresql.org/)**: Banco de dados relacional robusto
+
+### Dependências Importantes
+
+- **@nestjs/passport** & **passport-jwt**: Autenticação baseada em JWT
+- **@nestjs/swagger**: Documentação automática da API
+- **bcrypt**: Hash seguro de senhas
+- **geoip-lite**: Geolocalização por endereço IP
+- **cookie-parser**: Gerenciamento de cookies para refresh tokens
+- **class-validator** & **class-transformer**: Validação e transformação de DTOs
+
+### Padrões e Boas Práticas
+
+- **Guards**: Proteção de rotas com autenticação JWT
+- **Interceptors**: Padronização de respostas e registro de pesquisas
+- **Filters**: Tratamento global de exceções
+- **DTOs**: Validação e documentação de dados de entrada/saída
+- **Decorators customizados**: Documentação automática com Swagger
+
+## Módulos da API
+
+### Auth (Autenticação)
+Gerenciamento completo de usuários e sessões:
+- Criação de usuários (restrito a administradores)
+- Login com geração de access token e refresh token
+- Renovação automática de tokens
+- Logout com limpeza de sessão
+- Exclusão de usuários (soft delete)
+
+### Pesquisa
+Consulta de versículos bíblicos:
+- Busca por livro, capítulo e versículo
+- Sugestões de livros similares em caso de erro
+- Validação de capítulos e versículos disponíveis
+- Registro automático de pesquisas com geolocalização
+
+### Comentário
+CRUD completo de comentários:
+- Adicionar comentários a versículos específicos
+- Atualizar comentários existentes
+- Excluir comentários (soft delete)
+- Proteção com autenticação JWT
+
+### Referência
+Gerenciamento de referências cruzadas:
+- Criar referências entre passagens bíblicas
+- Excluir referências (soft delete)
+- Proteção com autenticação JWT
+
+### Stats (Estatísticas)
+Análises detalhadas de uso da plataforma (requer autenticação):
+- Pesquisas por horário, dia da semana e mês
+- Total de pesquisas realizadas
+- Distribuição geográfica (estados e cidades)
+- Top N livros, capítulos e versículos mais pesquisados
+- Estatísticas de comentários e referências
+
+## Configuração para Desenvolvimento
+
+### Pré-requisitos
+
+- **Node.js** (versão 18 ou superior)
+- **PostgreSQL** (versão 14 ou superior)
+- **npm** ou **yarn**
+
+### Instalação
+
+1. Clone o repositório:
 ```bash
-$ npm install
+git clone <url-do-repositorio>
+cd contexto-biblico-backend
 ```
 
-## Compile and run the project
-
+2. Instale as dependências:
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+npm install
 ```
 
-## Run tests
+3. Configure as variáveis de ambiente:
 
-```bash
-# unit tests
-$ npm run test
+Crie um arquivo `.env` na raiz do projeto com as seguintes variáveis:
 
-# e2e tests
-$ npm run test:e2e
+```env
+# Banco de Dados
+DATABASE_URL="postgresql://usuario:senha@localhost:5432/contexto_biblico"
 
-# test coverage
-$ npm run test:cov
+# JWT
+JWT_SECRET="sua-chave-secreta-para-jwt"
+JWT_REFRESH_SECRET="sua-chave-secreta-para-refresh-token"
+
+# Servidor
+PORT=5000
+NODE_ENV=development
+
+# Frontend (CORS)
+FRONTEND_URL="http://localhost:3000"
 ```
 
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+4. Configure o banco de dados com Prisma:
 
 ```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+# Gerar o Prisma Client
+npm run prisma:generate
+
+# Executar as migrations
+npm run prisma:migrate
+
+# (Opcional) Abrir o Prisma Studio para visualizar os dados
+npm run prisma:studio
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+5. Execute a aplicação:
 
-## Resources
+```bash
+# Modo desenvolvimento (com hot-reload)
+npm run start:dev
 
-Check out a few resources that may come in handy when working with NestJS:
+# Modo debug
+npm run start:debug
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+# Modo produção
+npm run build
+npm run start:prod
+```
 
-## Support
+A API estará disponível em `http://localhost:5000`
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+## Documentação da API
 
-## Stay in touch
+A documentação completa da API está disponível via **Swagger UI** após iniciar o servidor:
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+**URL**: [http://localhost:5000/docs](http://localhost:5000/docs)
 
-## License
+### Autenticação
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+A API utiliza dois métodos de autenticação:
+
+1. **Bearer Token (JWT)**: Access token enviado no header `Authorization: Bearer <token>`
+2. **Cookie HttpOnly**: Refresh token armazenado automaticamente em cookie seguro
+
+Para testar a API via Swagger:
+1. Faça login através do endpoint `/auth/login`
+2. Copie o `accessToken` retornado
+3. Clique no botão "Authorize" no Swagger
+4. Cole o token e clique em "Authorize"
+
+## Scripts Disponíveis
+
+```bash
+# Desenvolvimento
+npm run start          # Iniciar em modo normal
+npm run start:dev      # Iniciar com hot-reload
+npm run start:debug    # Iniciar em modo debug
+
+# Build
+npm run build          # Compilar para produção
+
+# Testes
+npm run test           # Executar testes unitários
+npm run test:watch     # Executar testes em modo watch
+npm run test:cov       # Executar testes com cobertura
+npm run test:e2e       # Executar testes end-to-end
+
+# Código
+npm run format         # Formatar código com Prettier
+npm run lint           # Verificar e corrigir problemas com ESLint
+
+# Prisma
+npm run prisma:generate  # Gerar Prisma Client
+npm run prisma:migrate   # Executar migrations
+npm run prisma:deploy    # Deploy de migrations (produção)
+npm run prisma:studio    # Abrir Prisma Studio
+
+# Utilitários
+npm run normalizar:livros  # Normalizar dados históricos
+```
+
+## Estrutura do Banco de Dados
+
+### Modelos Principais
+
+#### usuarios
+Armazena informações dos usuários do sistema:
+- Dados pessoais (email, nome, senha hash)
+- Controle de permissões (is_admin)
+- Refresh token para autenticação
+- Soft delete (isDeleted)
+
+#### pesquisas
+Registra todas as consultas realizadas na Bíblia:
+- Livro, capítulo e versículo pesquisados
+- Dados de geolocalização (IP, cidade, estado)
+- Timestamp da pesquisa
+
+#### comentarios
+Armazena comentários dos usuários em versículos:
+- Referência do versículo (livro, capítulo, versículo)
+- Texto do comentário
+- Timestamps de criação e atualização
+- Soft delete (isDeleted)
+
+#### referencias
+Armazena referências cruzadas entre passagens:
+- Referência do versículo (livro, capítulo, versículo)
+- Passagem relacionada
+- Timestamps de criação e atualização
+- Soft delete (isDeleted)
+
+## Estrutura do Projeto
+
+```
+src/
+├── common/                    # Módulos compartilhados
+│   ├── decorators/           # Decorators customizados
+│   ├── filters/              # Exception filters
+│   ├── interceptors/         # Interceptors globais
+│   ├── interfaces/           # Interfaces compartilhadas
+│   └── services/             # Serviços compartilhados
+├── data/                     # Dados estáticos (Bíblia NVI)
+├── guards/                   # Guards de autenticação
+├── modules/                  # Módulos da aplicação
+│   ├── app/                 # Módulo raiz
+│   ├── auth/                # Autenticação e usuários
+│   ├── comentario/          # Comentários
+│   ├── pesquisa/            # Pesquisa de versículos
+│   ├── prisma/              # Integração com Prisma
+│   ├── referencia/          # Referências cruzadas
+│   └── stats/               # Estatísticas
+└── main.ts                   # Entry point da aplicação
+```
+
+## Recursos de Segurança
+
+- **Senhas**: Hash com bcrypt (salt rounds configurável)
+- **JWT**: Tokens assinados com chaves secretas diferentes para access e refresh
+- **Refresh Tokens**: Armazenados em cookies HttpOnly com proteção CSRF
+- **CORS**: Configurado para aceitar apenas origens confiáveis
+- **Validação**: Validação automática de todos os inputs com class-validator
+- **Rate Limiting**: Recomendado para produção (não implementado)
+- **Soft Delete**: Exclusão lógica para preservar histórico
+
+## Contribuindo
+
+Este é um projeto privado. Para contribuir, entre em contato com a equipe de desenvolvimento.
+
+## Licença
+
+UNLICENSED - Todos os direitos reservados
+
+## Contato
+
+**Autor**: Adelson de Bittencourt Junior
+
+---
+
+Desenvolvido com NestJS
