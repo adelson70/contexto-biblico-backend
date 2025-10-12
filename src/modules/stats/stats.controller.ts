@@ -11,8 +11,8 @@ import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
 import { ApiStandardResponse } from 'src/common/decorators/api-response.decorator';
 
 @ApiTags('Estatísticas')
-// @ApiBearerAuth('JWT-auth')
-// @UseGuards(JwtAuthGuard)
+@ApiBearerAuth('JWT-auth')
+@UseGuards(JwtAuthGuard)
 @Controller('stats')
 export class StatsController {
   constructor(private readonly statsService: StatsService, private logger: Logger) {}
