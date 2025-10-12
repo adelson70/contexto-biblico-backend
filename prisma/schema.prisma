@@ -51,10 +51,12 @@ model usuarios {
   email     String   @unique
   nome      String?
   senha     String
+  is_admin  Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())
   isDeleted Boolean  @default(false)
 
   @@index([email])
   @@index([isDeleted])
+  @@index([is_admin])
 }

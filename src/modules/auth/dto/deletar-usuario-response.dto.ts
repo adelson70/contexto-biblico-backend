@@ -6,5 +6,12 @@ export class DeletarUsuarioResponseDto {
     example: 1,
   })
   id: number;
+
+  @ApiProperty({
+    description: 'Mensagem personalizada (opcional)',
+    example: 'Usuário deletado com sucesso',
+    required: false,
+  })
+  message?: string;
 }
 

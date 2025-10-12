@@ -67,5 +67,12 @@ export class PesquisaResponseDto {
     example: 31
   })
   totalVersiculos: number;
+
+  @ApiProperty({
+    description: 'Mensagem personalizada (opcional)',
+    example: 'Pesquisa realizada com sucesso',
+    required: false,
+  })
+  message?: string;
 }
 

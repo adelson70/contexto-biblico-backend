@@ -31,4 +31,11 @@ export class CriarReferenciaResponse {
         example: 1
     })
     versiculo: number;
+
+    @ApiProperty({
+        description: 'Mensagem personalizada (opcional)',
+        example: 'Referência criada com sucesso',
+        required: false,
+    })
+    message?: string;
 }

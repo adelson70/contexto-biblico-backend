@@ -1,4 +1,4 @@
-import { Injectable, ConflictException, NotFoundException } from '@nestjs/common';
+import { Injectable, ConflictException, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { BcryptService } from '../../common/services/bcrypt.service';
 import { CriarUsuarioDto } from './dto/criar-usuario.dto';
@@ -37,6 +37,7 @@ export class AuthService {
         email: criarUsuarioDto.email,
         senha: senhaHash,
         nome: criarUsuarioDto.nome || null,
+        is_admin: criarUsuarioDto.is_admin || false,
       },
     });
 
@@ -46,6 +47,7 @@ export class AuthService {
       email: usuario.email,
       nome: usuario.nome,
       createdAt: usuario.createdAt,
+      is_admin: usuario.is_admin,
     };
   }
 
@@ -64,11 +66,15 @@ export class AuthService {
 
     // Verificar se o usuário existe
     const usuario = await this.prisma.usuarios.findUnique({
-      where: { id: usuarioId },
+      where: { id: usuarioId, is_admin: false },
     });
 
     if (!usuario) {
       throw new NotFoundException('Usuário não encontrado');
+    }
+
+    if (usuario.is_admin) {
+      throw new ForbiddenException('Usuário admin não pode ser deletado');
     }
 
     // Deletar o usuário
@@ -79,6 +85,7 @@ export class AuthService {
 
     return {
       id: usuarioId,
+      message: 'Usuário deletado com sucesso',
     };
   }
 }

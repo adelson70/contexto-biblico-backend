@@ -18,12 +18,23 @@ export class ResponseInterceptor<T> implements NestInterceptor<T, ApiResponse<T>
     return next.handle().pipe(
       map((data) => {
         const statusCode = response.statusCode;
-        const message = this.generateMessage(request.method, request.url, statusCode);
+        
+        // Verificar se o data contém uma mensagem manual
+        const customMessage = data && typeof data === 'object' && 'message' in data 
+          ? data.message 
+          : null;
+        
+        const message = customMessage || this.generateMessage(request.method, request.url, statusCode);
+        
+        // Se houver mensagem customizada, remover do data para não duplicar
+        const responseData = customMessage && data 
+          ? { ...data, message: undefined } 
+          : data;
 
         return {
           status: statusCode,
           message,
-          data,
+          data: responseData,
         };
       }),
     );

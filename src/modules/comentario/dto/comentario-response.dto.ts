@@ -30,5 +30,12 @@ export class CriarComentarioResponse {
         example: 'Este é um comentário sobre o versículo'
     })
     texto: string;
+
+    @ApiProperty({
+        description: 'Mensagem personalizada (opcional)',
+        example: 'Comentário criado com sucesso',
+        required: false,
+    })
+    message?: string;
 }
 

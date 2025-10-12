@@ -25,5 +25,18 @@ export class CriarUsuarioResponseDto {
     example: '2025-10-11T10:00:00.000Z',
   })
   createdAt: Date;
+
+  @ApiProperty({
+    description: 'Se o usuário é admin',
+    example: true,
+  })
+  is_admin: boolean;
+
+  @ApiProperty({
+    description: 'Mensagem personalizada (opcional)',
+    example: 'Usuário criado com sucesso',
+    required: false,
+  })
+  message?: string;
 }
 
