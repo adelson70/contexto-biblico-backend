@@ -5,7 +5,7 @@ import { Logger, ValidationPipe } from '@nestjs/common';
 import { ResponseInterceptor } from './common/interceptors/response.interceptor';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import cookieParser from 'cookie-parser';
-
+import basicAuth from 'express-basic-auth';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -35,6 +35,18 @@ async function bootstrap() {
 
   // Aplica filter global para padronizar respostas de erro
   app.useGlobalFilters(new HttpExceptionFilter());
+
+  // criando login e senha para o swagger
+  app.use(
+    ['/docs', '/docs-json'],
+    basicAuth({
+      challenge: true,
+      users: {
+        [process.env.SWAGGER_USER as string]: process.env.SWAGGER_PASSWORD as string,
+      },
+    })
+  )
+
 
   const config = new DocumentBuilder()
     .setTitle('Contexto Biblico API')
