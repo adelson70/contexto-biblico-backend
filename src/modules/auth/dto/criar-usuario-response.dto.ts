@@ -28,7 +28,7 @@ export class CriarUsuarioResponseDto {
 
   @ApiProperty({
     description: 'Se o usuário é admin',
-    example: true,
+    example: false,
   })
   is_admin: boolean;
 
