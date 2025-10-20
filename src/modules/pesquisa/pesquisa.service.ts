@@ -1,6 +1,7 @@
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { PesquisaRequestDto } from './dto/pesquisa-request.dto';
 import { PesquisaResponseDto } from './dto/pesquisa-response.dto';
+import { LivroBiblicaloResponseDto } from './dto/livro-biblico-response.dto';
 import { LivroNaoEncontradoException } from './exceptions/livro-nao-encontrado.exception';
 import { CapituloInvalidoException } from './exceptions/capitulo-invalido.exception';
 import { PrismaService } from '../../modules/prisma/prisma.service';
@@ -114,5 +115,27 @@ export class PesquisaService {
       versiculos: versiculosComDados,
       totalVersiculos: versiculos.length
     };
+  }
+
+  async listarLivrosBiblicalos(): Promise<LivroBiblicaloResponseDto[]> {
+    const todosLivros = this.bibliaService.getTodosLivros();
+    
+    return todosLivros.map((livro, index) => {
+      // Navegação cíclica: o último livro aponta para o primeiro e vice-versa
+      const livroAnterior = index > 0 
+        ? todosLivros[index - 1].name 
+        : todosLivros[todosLivros.length - 1].name; // Apocalipse para Gênesis
+      
+      const proximoLivro = index < todosLivros.length - 1 
+        ? todosLivros[index + 1].name 
+        : todosLivros[0].name; // Gênesis para Apocalipse
+      
+      return {
+        nome: livro.name,
+        quantidadeCapitulos: livro.chapters.length,
+        livroAnterior,
+        proximoLivro
+      };
+    });
   }
 }

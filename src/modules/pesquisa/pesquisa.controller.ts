@@ -2,6 +2,7 @@ import { Controller, Get, Post, Body, Logger, UseInterceptors } from '@nestjs/co
 import { PesquisaService } from './pesquisa.service';
 import { PesquisaRequestDto } from './dto/pesquisa-request.dto';
 import { PesquisaResponseDto } from './dto/pesquisa-response.dto';
+import { LivroBiblicaloResponseDto } from './dto/livro-biblico-response.dto';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { ApiStandardResponse, ApiErrorResponse } from '../../common/decorators/api-response.decorator';
 import { RegistroPesquisaInterceptor } from '../../common/interceptors/registro-pesquisa.interceptor';
@@ -34,5 +35,12 @@ export class PesquisaController {
   async buscarVersiculos(@Body() pesquisaDto: PesquisaRequestDto): Promise<PesquisaResponseDto> {
     this.logger.log("Pesquisando versiculos")
     return await this.pesquisaService.buscarVersiculos(pesquisaDto);
+  }
+
+  @Get()
+  @ApiOperation({ summary: 'Listar todos os livros bíblicos' })
+  @ApiStandardResponse(200, 'Livros bíblicos recuperados com sucesso', LivroBiblicaloResponseDto)
+  async listarLivrosBiblicalos(): Promise<LivroBiblicaloResponseDto[]> {
+    return await this.pesquisaService.listarLivrosBiblicalos();
   }
 }
