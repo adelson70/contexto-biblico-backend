@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsString, IsNotEmpty, IsInt, IsPositive } from "class-validator";
+import { IsString, IsNotEmpty, IsInt, IsPositive, IsDateString, ValidateIf } from "class-validator";
 import { Type } from "class-transformer";
 import { Optional } from "@nestjs/common";
 
@@ -203,6 +203,57 @@ export class PicoPesquisaCidadeResponseDTO {
   @ApiProperty({
     description: 'Mensagem de sucesso',
     example: 'Pesquisas por cidade recuperado com sucesso',
+  })
+  @Optional()
+  message?: string;
+}
+
+export class PicoPesquisaHorarioRequestDTO {
+  @ApiProperty({
+    description: 'Data de início do período (formato YYYY-MM-DD)',
+    example: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    type: String,
+    required: false,
+  })
+  @IsDateString({}, { message: 'data_inicio deve ser uma data válida no formato ISO 8601' })
+  @ValidateIf((o) => o.data_inicio !== undefined)
+  data_inicio?: string;
+
+  @ApiProperty({
+    description: 'Data de fim do período (formato YYYY-MM-DD)',
+    example: new Date().toISOString().split('T')[0],
+    type: String,
+    required: false,
+  })
+  @IsDateString({}, { message: 'data_fim deve ser uma data válida no formato ISO 8601' })
+  @ValidateIf((o) => o.data_fim !== undefined)
+  data_fim?: string;
+}
+
+export class PicoPesquisaHorarioResponseDTO {
+  @ApiProperty({
+    description: 'Array de objetos contendo horários (00-23) e suas respectivas quantidades de pesquisas',
+    type: [HorarioPesquisaDTO],
+    example: [
+      { horario: '00', quantidade: 5 },
+      { horario: '01', quantidade: 12 },
+      { horario: '02', quantidade: 3 },
+      { horario: '14', quantidade: 45 },
+      { horario: '23', quantidade: 8 },
+    ],
+  })
+  dados: HorarioPesquisaDTO[];
+
+  @ApiProperty({
+    description: 'Quantidade total de pesquisas no período especificado',
+    example: 1250,
+    type: Number,
+  })
+  total_periodo: number;
+
+  @ApiProperty({
+    description: 'Mensagem de sucesso',
+    example: 'Pico de horário de pesquisa recuperado com sucesso',
   })
   @Optional()
   message?: string;

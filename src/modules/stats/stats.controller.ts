@@ -1,8 +1,8 @@
-import { Controller, Get, UseGuards, Query } from '@nestjs/common';
+import { Controller, Get, Post, UseGuards, Query, Body, BadRequestException } from '@nestjs/common';
 import { StatsService } from './stats.service';
 import { ApiBearerAuth, ApiTags, ApiQuery } from '@nestjs/swagger';
 import { Logger } from '@nestjs/common';
-import { PicoPesquisaResponseDTO, PicoPesquisaSemanalResponseDTO, PicoPesquisaMensalResponseDTO, PicoPesquisaTotalResponseDTO, PicoPesquisaEstadoResponseDTO, PicoPesquisaCidadeResponseDTO } from './dto/pico-pesquisa.dto';
+import { PicoPesquisaResponseDTO, PicoPesquisaSemanalResponseDTO, PicoPesquisaMensalResponseDTO, PicoPesquisaTotalResponseDTO, PicoPesquisaEstadoResponseDTO, PicoPesquisaCidadeResponseDTO, PicoPesquisaHorarioRequestDTO, PicoPesquisaHorarioResponseDTO } from './dto/pico-pesquisa.dto';
 import { LivrosPesquisadosResponseDTO } from './dto/livros-pesquisados.dto';
 import { LivrosCapituloPesquisadosResponseDTO } from './dto/livros-capitulo-pesquisados.dto';
 import { ComentariosTotalResponseDTO, ComentariosPorLivroResponseDTO, ComentariosPorCapituloResponseDTO, ComentariosPorVersiculoResponseDTO } from './dto/livro-comentarios.dto';
@@ -17,11 +17,22 @@ import { ApiStandardResponse } from 'src/common/decorators/api-response.decorato
 export class StatsController {
   constructor(private readonly statsService: StatsService, private logger: Logger) {}
 
-  @Get('pesquisa-horario')
-  @ApiStandardResponse(200, 'Pesquisas por horário recuperado com sucesso', PicoPesquisaResponseDTO)
-  async picoPesquisa(): Promise <PicoPesquisaResponseDTO> {
+  @Post('pesquisa-horario')
+  @ApiStandardResponse(200, 'Pesquisas por horário recuperado com sucesso', PicoPesquisaHorarioResponseDTO)
+  async picoPesquisa(@Body() requestData: PicoPesquisaHorarioRequestDTO): Promise<PicoPesquisaHorarioResponseDTO> {
     this.logger.log("Buscando pesquisas por horário")
-    return this.statsService.picoPesquisa()
+    
+    // Validação: data_inicio não pode ser maior que data_fim
+    if (requestData.data_inicio && requestData.data_fim) {
+      const dataInicio = new Date(requestData.data_inicio + 'T00:00:00.000Z');
+      const dataFim = new Date(requestData.data_fim + 'T23:59:59.999Z');
+      
+      if (dataInicio > dataFim) {
+        throw new BadRequestException('A data de início não pode ser maior que a data de fim');
+      }
+    }
+    
+    return this.statsService.picoPesquisaComPeriodo(requestData.data_inicio, requestData.data_fim)
   }
 
   @Get('pesquisa-semanal')

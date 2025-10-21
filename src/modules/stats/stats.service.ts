@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { PicoPesquisaResponseDTO, PicoPesquisaSemanalResponseDTO, PicoPesquisaMensalResponseDTO, PicoPesquisaTotalResponseDTO, PicoPesquisaEstadoResponseDTO, PicoPesquisaCidadeResponseDTO } from './dto/pico-pesquisa.dto';
+import { PicoPesquisaResponseDTO, PicoPesquisaSemanalResponseDTO, PicoPesquisaMensalResponseDTO, PicoPesquisaTotalResponseDTO, PicoPesquisaEstadoResponseDTO, PicoPesquisaCidadeResponseDTO, PicoPesquisaHorarioResponseDTO } from './dto/pico-pesquisa.dto';
 import { LivrosPesquisadosResponseDTO } from './dto/livros-pesquisados.dto';
 import { LivrosCapituloPesquisadosResponseDTO } from './dto/livros-capitulo-pesquisados.dto';
 import { ComentariosTotalResponseDTO, ComentariosPorLivroResponseDTO, ComentariosPorCapituloResponseDTO, ComentariosPorVersiculoResponseDTO } from './dto/livro-comentarios.dto';
@@ -42,6 +42,69 @@ export class StatsService {
     }));
     
     return { dados, message: 'Pico de horário de pesquisa recuperado com sucesso' };
+  }
+
+  async picoPesquisaComPeriodo(dataInicio?: string, dataFim?: string): Promise<PicoPesquisaHorarioResponseDTO> {
+    // Se não foram fornecidas datas, usa padrão de 7 dias atrás até hoje
+    let dataInicioFiltro: Date;
+    let dataFimFiltro: Date;
+
+    if (dataInicio && dataFim) {
+      // Converte as datas para o início e fim do dia
+      dataInicioFiltro = new Date(dataInicio + 'T00:00:00.000Z');
+      dataFimFiltro = new Date(dataFim + 'T23:59:59.999Z');
+    } else {
+      // Padrão: 7 dias atrás até hoje
+      dataFimFiltro = new Date();
+      dataFimFiltro.setHours(23, 59, 59, 999); // Fim do dia atual
+      
+      dataInicioFiltro = new Date();
+      dataInicioFiltro.setDate(dataInicioFiltro.getDate() - 7);
+      dataInicioFiltro.setHours(0, 0, 0, 0); // Início do dia há 7 dias
+    }
+
+    // Busca pesquisas no período especificado
+    const pesquisas = await this.prisma.pesquisas.findMany({
+      where: {
+        createdAt: {
+          gte: dataInicioFiltro,
+          lte: dataFimFiltro,
+        },
+      },
+      select: {
+        createdAt: true,
+      },
+    });
+    
+    // Conta o total de pesquisas no período
+    const totalPeriodo = pesquisas.length;
+    
+    // Cria um objeto para contar as pesquisas por horário
+    const contagemPorHora: Record<string, number> = {};
+    
+    // Inicializa todas as 24 horas com 0
+    for (let i = 0; i < 24; i++) {
+      const hora = i.toString().padStart(2, '0');
+      contagemPorHora[hora] = 0;
+    }
+    
+    // Conta as pesquisas por hora
+    pesquisas.forEach(pesquisa => {
+      const hora = pesquisa.createdAt.getHours().toString().padStart(2, '0');
+      contagemPorHora[hora]++;
+    });
+    
+    // Converte o objeto em array de objetos
+    const dados = Object.entries(contagemPorHora).map(([horario, quantidade]) => ({
+      horario,
+      quantidade,
+    }));
+    
+    return { 
+      dados, 
+      total_periodo: totalPeriodo,
+      message: 'Pico de horário de pesquisa recuperado com sucesso' 
+    };
   }
 
   async picoPesquisaSemanal(): Promise<PicoPesquisaSemanalResponseDTO> {
