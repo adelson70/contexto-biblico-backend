@@ -13,7 +13,7 @@ model comentarios {
   livro String
   capitulo  Int
   versiculo Int
-  texto     String
+  texto     String   @db.Text
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())
   isDeleted Boolean  @default(false)

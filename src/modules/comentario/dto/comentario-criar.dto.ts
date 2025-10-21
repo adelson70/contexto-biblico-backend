@@ -1,6 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsString, IsNotEmpty, IsInt, IsPositive } from "class-validator";
 import { Type } from "class-transformer";
+import { SanitizeText } from "../../../common/decorators/sanitize-text.decorator";
 
 export class CriarComentarioDTO {
     @ApiProperty({
@@ -41,6 +42,7 @@ export class CriarComentarioDTO {
     })
     @IsString({ message: 'O texto deve ser uma string' })
     @IsNotEmpty({ message: 'O texto não pode estar vazio' })
+    @SanitizeText()
     texto: string;
 }
 
