@@ -9,7 +9,6 @@ import { LoginResponseDto } from './dto/login-response.dto';
 import { RefreshResponseDto } from './dto/refresh-response.dto';
 import { LogoutResponseDto } from './dto/logout-response.dto';
 import { DeletarUsuarioResponseDto } from './dto/deletar-usuario-response.dto';
-import { JwtRefreshGuard } from '../../guards/jwt-refresh.guard';
 import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
 import { AdminGuard } from '../../guards/admin.guard';
 
@@ -102,7 +101,7 @@ export class AuthController {
   }
 
   @Post('refresh')
-  @UseGuards(JwtRefreshGuard)
+  @UseGuards(JwtAuthGuard)
   @ApiCookieAuth('refresh_token')
   @ApiOperation({ summary: 'Renovar access token usando refresh token' })
   @ApiResponse({
@@ -121,7 +120,7 @@ export class AuthController {
     const user = request.user as any;
     this.logger.log(`Renovando token para usuário: ${user.email}`);
 
-    const tokens = await this.authService.refreshTokens(
+    const result = await this.authService.refreshTokens(
       user.userId,
       user.email,
       user.isAdmin,
@@ -129,7 +128,7 @@ export class AuthController {
 
     // Atualizar o cookie com o novo refresh token (rotação)
     const isProduction = process.env.NODE_ENV === 'production';
-    response.cookie('refresh_token', tokens.refreshToken, {
+    response.cookie('refresh_token', result.refreshToken, {
       httpOnly: true,
       secure: isProduction,
       sameSite: 'strict',
@@ -138,7 +137,11 @@ export class AuthController {
     });
 
     return {
-      accessToken: tokens.accessToken,
+      accessToken: result.accessToken,
+      userId: result.userId,
+      email: result.email,
+      nome: result.nome ?? undefined,
+      isAdmin: result.isAdmin,
     };
   }
 

@@ -211,9 +211,28 @@ export class AuthService {
     // Atualizar o refresh token no banco (rotação)
     await this.setCurrentRefreshToken(userId, refreshToken);
 
+    // Buscar dados completos do usuário
+    const usuario = await this.prisma.usuarios.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        email: true,
+        nome: true,
+        is_admin: true,
+      },
+    });
+
+    if (!usuario) {
+      throw new UnauthorizedException('Usuário não encontrado');
+    }
+
     return {
       accessToken,
       refreshToken,
+      userId: usuario.id,
+      email: usuario.email,
+      nome: usuario.nome,
+      isAdmin: usuario.is_admin,
     };
   }
   async removeRefreshToken(userId: number): Promise<void> {

@@ -7,7 +7,7 @@ import { LivrosPesquisadosResponseDTO } from './dto/livros-pesquisados.dto';
 import { LivrosCapituloPesquisadosResponseDTO } from './dto/livros-capitulo-pesquisados.dto';
 import { ComentariosTotalResponseDTO, ComentariosPorLivroResponseDTO, ComentariosPorCapituloResponseDTO, ComentariosPorVersiculoResponseDTO } from './dto/livro-comentarios.dto';
 import { ReferenciasTotalResponseDTO, ReferenciasPorLivroResponseDTO, ReferenciasPorCapituloResponseDTO, ReferenciasPorVersiculoResponseDTO } from './dto/livro-referencias.dto';
-import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
+import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
 import { ApiStandardResponse } from 'src/common/decorators/api-response.decorator';
 
 @ApiTags('Estatística')

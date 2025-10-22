@@ -5,7 +5,7 @@ import { ApiErrorResponse, ApiStandardResponse } from 'src/common/decorators/api
 import { CriarComentarioDTO } from './dto/comentario-criar.dto';
 import { AtualizarComentarioDTO } from './dto/comentario-atualizar.dto';
 import { CriarComentarioResponse } from './dto/comentario-response.dto';
-import { JwtAuthWithRefreshGuard } from '../../guards/jwt-auth-with-refresh.guard';
+import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
 
 @ApiTags('Comentário')
 @Controller('comentario')
@@ -14,7 +14,7 @@ export class ComentarioController {
   private readonly logger = new Logger(ComentarioController.name);
 
   @Post()
-  @UseGuards(JwtAuthWithRefreshGuard)
+  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Criar um comentario' })
   @ApiStandardResponse(201, 'Comentario criado com sucesso', CriarComentarioResponse)
@@ -28,7 +28,7 @@ export class ComentarioController {
   }
 
   @Delete(':id')
-  @UseGuards(JwtAuthWithRefreshGuard)
+  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Deletar um comentario' })
   @ApiStandardResponse(200, 'Comentario deletado com sucesso')
@@ -41,7 +41,7 @@ export class ComentarioController {
   }
 
   @Put(':id')
-  @UseGuards(JwtAuthWithRefreshGuard)
+  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Atualizar um comentario' })
   @ApiStandardResponse(200, 'Comentario atualizado com sucesso')

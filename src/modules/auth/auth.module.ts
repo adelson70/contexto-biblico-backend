@@ -9,7 +9,7 @@ import { BcryptService } from '../../common/services/bcrypt.service';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { JwtRefreshStrategy } from './strategies/jwt-refresh.strategy';
 import { AdminGuard } from '../../guards/admin.guard';
-import { JwtAuthWithRefreshGuard } from '../../guards/jwt-auth-with-refresh.guard';
+import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
 
 @Module({
   imports: [
@@ -21,7 +21,7 @@ import { JwtAuthWithRefreshGuard } from '../../guards/jwt-auth-with-refresh.guar
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, BcryptService, Logger, JwtStrategy, JwtRefreshStrategy, AdminGuard, JwtAuthWithRefreshGuard],
+  providers: [AuthService, BcryptService, Logger, JwtStrategy, JwtRefreshStrategy, AdminGuard, JwtAuthGuard],
   exports: [AuthService],
 })
 export class AuthModule {}

@@ -1,15 +1,15 @@
 import { Injectable, ExecutionContext, ForbiddenException, UnauthorizedException } from '@nestjs/common';
-import { JwtAuthWithRefreshGuard } from './jwt-auth-with-refresh.guard';
+import { JwtAuthGuard } from './jwt-auth.guard';
 import { AuthService } from '../modules/auth/auth.service';
 
 @Injectable()
-export class AdminGuard extends JwtAuthWithRefreshGuard {
+export class AdminGuard extends JwtAuthGuard {
   constructor(authService: AuthService) {
     super(authService);
   }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    // Valida o JWT primeiro usando o JwtAuthWithRefreshGuard (com renovação automática)
+    // Valida o JWT primeiro usando o JwtAuthGuard (com renovação automática)
     const result = await super.canActivate(context);
     return result;
   }
