@@ -204,7 +204,7 @@ export class StatsService {
     const pesquisas = await this.prisma.pesquisas.findMany({
       where: {
         estado: {
-          not: null,
+          notIn: ['Localhost', 'Desconhecido', 'N/A', ''],
         },
       },
       select: {
@@ -240,7 +240,7 @@ export class StatsService {
     const pesquisas = await this.prisma.pesquisas.findMany({
       where: {
         cidade: {
-          not: null,
+          notIn: ['Localhost', 'Desconhecido', 'N/A', ''],
         },
       },
       select: {
