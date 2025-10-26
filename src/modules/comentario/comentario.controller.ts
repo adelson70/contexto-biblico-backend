@@ -1,10 +1,11 @@
-import { Body, Controller, Delete, Logger, Param, Post, Put, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Logger, Param, Post, Put, Query, UseGuards } from '@nestjs/common';
 import { ComentarioService } from './comentario.service';
 import { ApiOperation, ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { ApiErrorResponse, ApiStandardResponse } from 'src/common/decorators/api-response.decorator';
 import { CriarComentarioDTO } from './dto/comentario-criar.dto';
 import { AtualizarComentarioDTO } from './dto/comentario-atualizar.dto';
 import { CriarComentarioResponse } from './dto/comentario-response.dto';
+import { ListarComentariosQueryDTO, ListarComentariosResponse } from './dto/comentario-listar.dto';
 import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
 
 @ApiTags('Comentário')
@@ -12,6 +13,20 @@ import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
 export class ComentarioController {
   constructor(private readonly comentarioService: ComentarioService) {}
   private readonly logger = new Logger(ComentarioController.name);
+
+  @Get()
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Listar comentários com paginação. Filtra por livro se fornecido.' })
+  @ApiStandardResponse(200, 'Comentários listados com sucesso', ListarComentariosResponse)
+  @ApiErrorResponse(400, 'Dados inválidos')
+  @ApiErrorResponse(401, 'Não autenticado')
+  async listarComentarios(
+    @Query() queryDto: ListarComentariosQueryDTO
+  ): Promise<ListarComentariosResponse> {
+    this.logger.log(`Listando comentários${queryDto.livro ? ` para livro: ${queryDto.livro}` : ''}`)
+    return this.comentarioService.listarComentariosPorLivro(queryDto)
+  }
 
   @Post()
   @UseGuards(JwtAuthGuard)
