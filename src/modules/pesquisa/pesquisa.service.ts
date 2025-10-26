@@ -2,10 +2,12 @@ import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { PesquisaRequestDto } from './dto/pesquisa-request.dto';
 import { PesquisaResponseDto } from './dto/pesquisa-response.dto';
 import { LivroBiblicaloResponseDto } from './dto/livro-biblico-response.dto';
+import { LivroBiblicaloInfoResponseDto } from './dto/livro-info-response.dto';
 import { LivroNaoEncontradoException } from './exceptions/livro-nao-encontrado.exception';
 import { CapituloInvalidoException } from './exceptions/capitulo-invalido.exception';
 import { PrismaService } from '../../modules/prisma/prisma.service';
 import { BibliaService } from '../../common/services/biblia.service';
+import * as livrosInfo from '../../data/livros-info.json';
 
 @Injectable()
 export class PesquisaService {
@@ -137,5 +139,32 @@ export class PesquisaService {
         proximoLivro
       };
     });
+  }
+
+  async obterInfoLivroBiblicalo(livroId: string): Promise<LivroBiblicaloInfoResponseDto> {
+    const livroInfo = livrosInfo[livroId as keyof typeof livrosInfo];
+    
+    if (!livroInfo) {
+      throw new HttpException(
+        {
+          statusCode: HttpStatus.NOT_FOUND,
+          message: `Livro com ID ${livroId} não encontrado`,
+          error: 'Livro não encontrado',
+        },
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    // Converte o objeto de capítulos em array ordenado numericamente
+    const capitulos = Object.entries(livroInfo).map(([capitulo, versiculos]) => ({
+      capitulo: Number(capitulo), // Mais rápido que parseInt
+      versiculos: Number(versiculos) // Garante número
+    })).sort((a, b) => a.capitulo - b.capitulo); // Ordem garantida
+
+    return {
+      livro_id: livroId,
+      capitulos,
+      totalCapitulos: capitulos.length
+    };
   }
 }

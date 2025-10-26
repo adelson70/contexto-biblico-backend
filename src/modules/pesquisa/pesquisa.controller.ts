@@ -1,8 +1,9 @@
-import { Controller, Get, Post, Body, Logger, UseInterceptors } from '@nestjs/common';
+import { Controller, Get, Post, Body, Logger, UseInterceptors, Param } from '@nestjs/common';
 import { PesquisaService } from './pesquisa.service';
 import { PesquisaRequestDto } from './dto/pesquisa-request.dto';
 import { PesquisaResponseDto } from './dto/pesquisa-response.dto';
 import { LivroBiblicaloResponseDto } from './dto/livro-biblico-response.dto';
+import { LivroBiblicaloInfoResponseDto } from './dto/livro-info-response.dto';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { ApiStandardResponse, ApiErrorResponse } from '../../common/decorators/api-response.decorator';
 import { RegistroPesquisaInterceptor } from '../../common/interceptors/registro-pesquisa.interceptor';
@@ -42,5 +43,14 @@ export class PesquisaController {
   @ApiStandardResponse(200, 'Livros bíblicos recuperados com sucesso', LivroBiblicaloResponseDto)
   async listarLivrosBiblicalos(): Promise<LivroBiblicaloResponseDto[]> {
     return await this.pesquisaService.listarLivrosBiblicalos();
+  }
+
+  @Get('info/:livro_id')
+  @ApiOperation({ summary: 'Obter informações sobre um livro bíblico' })
+  @ApiStandardResponse(200, 'Informações sobre o livro bíblico recuperadas com sucesso', LivroBiblicaloInfoResponseDto)
+  async obterInfoLivroBiblicalo(
+    @Param('livro_id') livroId: string
+  ): Promise<LivroBiblicaloInfoResponseDto> {
+    return await this.pesquisaService.obterInfoLivroBiblicalo(livroId);
   }
 }
