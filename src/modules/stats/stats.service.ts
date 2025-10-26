@@ -199,7 +199,7 @@ export class StatsService {
     return { total, message: 'Pesquisas totais recuperado com sucesso' };
   }
 
-  async picoPesquisaEstado(): Promise<PicoPesquisaEstadoResponseDTO> {
+  async picoPesquisaEstado(top: number = 10): Promise<PicoPesquisaEstadoResponseDTO> {
     // Busca todas as pesquisas com estado
     const pesquisas = await this.prisma.pesquisas.findMany({
       where: {
@@ -230,12 +230,13 @@ export class StatsService {
         estado,
         quantidade,
       }))
-      .sort((a, b) => b.quantidade - a.quantidade);
+      .sort((a, b) => b.quantidade - a.quantidade)
+      .slice(0, top);
 
-    return { dados, message: 'Pesquisas por estado recuperado com sucesso' };
+    return { dados, message: `Top ${top} estados com mais pesquisas recuperado com sucesso` };
   }
 
-  async picoPesquisaCidade(): Promise<PicoPesquisaCidadeResponseDTO> {
+  async picoPesquisaCidade(top: number = 10): Promise<PicoPesquisaCidadeResponseDTO> {
     // Busca todas as pesquisas com cidade
     const pesquisas = await this.prisma.pesquisas.findMany({
       where: {
@@ -266,9 +267,10 @@ export class StatsService {
         cidade,
         quantidade,
       }))
-      .sort((a, b) => b.quantidade - a.quantidade);
+      .sort((a, b) => b.quantidade - a.quantidade)
+      .slice(0, top);
 
-    return { dados, message: 'Pesquisas por cidade recuperado com sucesso' };
+    return { dados, message: `Top ${top} cidades com mais pesquisas recuperado com sucesso` };
   }
 
   async livrosPesquisados(top: number = 10): Promise<LivrosPesquisadosResponseDTO> {

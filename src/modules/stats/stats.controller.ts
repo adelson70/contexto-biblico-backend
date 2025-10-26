@@ -57,17 +57,21 @@ export class StatsController {
   }
 
   @Get('pesquisa-estado')
+  @ApiQuery({ name: 'top', required: false, type: Number, description: 'Quantidade de estados a retornar (padrão: 10)', example: 10 })
   @ApiStandardResponse(200, 'Pesquisas por estado recuperado com sucesso', PicoPesquisaEstadoResponseDTO)
-  async picoPesquisaEstado(): Promise <PicoPesquisaEstadoResponseDTO> {
-    this.logger.log("Buscando pesquisas por região")
-    return this.statsService.picoPesquisaEstado()
+  async picoPesquisaEstado(@Query('top') top?: string): Promise <PicoPesquisaEstadoResponseDTO> {
+    const topNumber = top ? parseInt(top, 10) : 10;
+    this.logger.log(`Buscando top ${topNumber} estados com mais pesquisas`)
+    return this.statsService.picoPesquisaEstado(topNumber)
   }
 
   @Get('pesquisa-cidade')
+  @ApiQuery({ name: 'top', required: false, type: Number, description: 'Quantidade de cidades a retornar (padrão: 10)', example: 10 })
   @ApiStandardResponse(200, 'Pesquisas por cidade recuperado com sucesso', PicoPesquisaCidadeResponseDTO)
-  async picoPesquisaCidade(): Promise <PicoPesquisaCidadeResponseDTO> {
-    this.logger.log("Buscando pesquisas por cidade")
-    return this.statsService.picoPesquisaCidade()
+  async picoPesquisaCidade(@Query('top') top?: string): Promise <PicoPesquisaCidadeResponseDTO> {
+    const topNumber = top ? parseInt(top, 10) : 10;
+    this.logger.log(`Buscando top ${topNumber} cidades com mais pesquisas`)
+    return this.statsService.picoPesquisaCidade(topNumber)
   }
 
   @Get('livros-pesquisados')
