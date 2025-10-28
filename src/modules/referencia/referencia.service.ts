@@ -58,31 +58,57 @@ export class ReferenciaService {
       where.versiculo = versiculo;
     }
 
-    // Paginação
-    const skip = page && limit ? (page - 1) * limit : undefined;
-    const take = limit;
+    // Buscar todas as referências sem paginação para agrupar
+    const referencias = await this.prisma.referencias.findMany({
+      where,
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
 
-    // Buscar referências e total
-    const [referencias, total] = await Promise.all([
-      this.prisma.referencias.findMany({
-        where,
-        skip,
-        take,
-        orderBy: {
-          createdAt: 'desc',
-        },
-      }),
-      this.prisma.referencias.count({ where }),
-    ]);
+    // Agrupar por livro, capítulo e versículo
+    const agrupadasMap = new Map<string, any>();
+    
+    referencias.forEach(ref => {
+      const chave = `${ref.livro}-${ref.capitulo}-${ref.versiculo}`;
+      
+      if (!agrupadasMap.has(chave)) {
+        agrupadasMap.set(chave, {
+          livro: ref.livro,
+          capitulo: ref.capitulo,
+          versiculo: ref.versiculo,
+          referencias: [],
+        });
+      }
+      
+      agrupadasMap.get(chave).referencias.push({
+        id: ref.id,
+        referencia: ref.referencia,
+        createdAt: ref.createdAt,
+      });
+    });
 
-    const totalPages = limit ? Math.ceil(total / limit) : 1;
+    // Converter mapa para array
+    const agrupadas = Array.from(agrupadasMap.values()).map(item => ({
+      ...item,
+      totalReferencias: item.referencias.length,
+    }));
+
+    // Paginação manual
+    const total = agrupadas.length;
+    const pagina = page || 1;
+    const limite = limit || total;
+    const skip = (pagina - 1) * limite;
+    const totalPages = Math.ceil(total / limite);
+
+    const dataPaginada = agrupadas.slice(skip, skip + limite);
 
     return {
-      data: referencias,
+      data: dataPaginada,
       meta: {
         total,
-        page: page || 1,
-        limit: limit || total,
+        page: pagina,
+        limit: limite,
         totalPages,
       },
     };
