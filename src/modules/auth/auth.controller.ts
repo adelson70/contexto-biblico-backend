@@ -1,4 +1,4 @@
-import { Controller, Delete, Logger, Param, Post, Body, Res, UseGuards, Req } from '@nestjs/common';
+import { Controller, Delete, Get, Logger, Param, Post, Body, Res, UseGuards, Req, Put, Query } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiCookieAuth, ApiBearerAuth } from '@nestjs/swagger';
 import type { Response, Request } from 'express';
 import { AuthService } from './auth.service';
@@ -9,6 +9,10 @@ import { LoginResponseDto } from './dto/login-response.dto';
 import { RefreshResponseDto } from './dto/refresh-response.dto';
 import { LogoutResponseDto } from './dto/logout-response.dto';
 import { DeletarUsuarioResponseDto } from './dto/deletar-usuario-response.dto';
+import { AtualizarUsuarioDto } from './dto/atualizar-usuario.dto';
+import { AtualizarUsuarioResponseDto } from './dto/atualizar-usuario-response.dto';
+import { ListarUsuariosQueryDto } from './dto/listar-usuarios-query.dto';
+import { ListarUsuariosResponseDto } from './dto/listar-usuarios-response.dto';
 import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
 import { AdminGuard } from '../../guards/admin.guard';
 
@@ -19,6 +23,28 @@ export class AuthController {
     private readonly authService: AuthService,
     private logger: Logger,
   ) {}
+
+  @Get()
+  @UseGuards(AdminGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Listar todos os usuários com paginação (somente admin)' })
+  @ApiResponse({
+    status: 200,
+    description: 'Lista de usuários retornada com sucesso',
+    type: ListarUsuariosResponseDto,
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Não autenticado',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Acesso negado - somente administradores',
+  })
+  async listarUsuarios(@Query() query: ListarUsuariosQueryDto): Promise<ListarUsuariosResponseDto> {
+    this.logger.log(`Listando todos os usuários - página ${query.page}, limite ${query.limit}, nome: ${query.nome || 'N/A'}, email: ${query.email || 'N/A'}`);
+    return this.authService.listarUsuarios(query.page, query.limit, query.nome, query.email);
+  }
 
   @Post('criar')
   @UseGuards(AdminGuard)
@@ -46,6 +72,36 @@ export class AuthController {
   ): Promise<CriarUsuarioResponseDto> {
     this.logger.log(`Criando usuário: ${criarUsuarioDto.email}`);
     return this.authService.criarUsuario(criarUsuarioDto);
+  }
+
+  @Put(':id')
+  @UseGuards(AdminGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Atualizar um usuário (somente admin)' })
+  @ApiResponse({
+    status: 200,
+    description: 'Usuário atualizado com sucesso',
+    type: AtualizarUsuarioResponseDto,
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Não autenticado',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Acesso negado - somente administradores',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Usuário não encontrado',
+  })
+  @ApiResponse({
+    status: 409,
+    description: 'Email já está em uso por outro usuário',
+  })
+  async atualizarUsuario(@Param('id') id: string, @Body() atualizarUsuarioDto: AtualizarUsuarioDto): Promise<AtualizarUsuarioResponseDto> {
+    this.logger.log(`Atualizando usuário: ${id}`);
+    return this.authService.atualizarUsuario(id, atualizarUsuarioDto);
   }
 
   @Post('login')
