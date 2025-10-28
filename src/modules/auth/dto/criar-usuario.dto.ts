@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsNotEmpty, IsOptional, IsString, MinLength } from 'class-validator';
+import { IsBoolean, IsEmail, IsNotEmpty, IsOptional, IsString, MinLength } from 'class-validator';
 
 export class CriarUsuarioDto {
   @ApiProperty({
@@ -30,5 +30,14 @@ export class CriarUsuarioDto {
   @IsOptional()
   @IsString({ message: 'O nome deve ser uma string' })
   nome?: string;
+
+  @ApiProperty({
+    description: 'Se o usuário é admin',
+    example: false,
+    required: false,
+  })
+  @IsOptional()
+  @IsBoolean({ message: 'O is_admin deve ser um booleano' })
+  is_admin?: boolean;
 }
 

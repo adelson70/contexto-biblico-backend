@@ -39,13 +39,13 @@ export class AuthService {
     // Hashear a senha
     const senhaHash = await this.bcryptService.hash(criarUsuarioDto.senha);
 
-    // Criar o usuário no banco de dados (sempre como não-admin)
+    // Criar o usuário no banco de dados
     const usuario = await this.prisma.usuarios.create({
       data: {
         email: criarUsuarioDto.email,
         senha: senhaHash,
         nome: criarUsuarioDto.nome || null,
-        is_admin: false, // Usuários criados são sempre não-admin
+        is_admin: criarUsuarioDto.is_admin ?? false, // Se não fornecido, default é false
       },
     });
 
