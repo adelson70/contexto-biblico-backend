@@ -1,7 +1,12 @@
-import { Controller, Body, Post, Delete, Param, UseGuards } from '@nestjs/common';
+import { Controller, Body, Post, Patch, Get, Param, Query, UseGuards } from '@nestjs/common';
 import { ReferenciaService } from './referencia.service';
 import { CriarReferenciaDTO } from './dto/referencia-criar.dto';
 import { CriarReferenciaResponse } from './dto/referencia-response.dto';
+import { ListarReferenciasDTO } from './dto/listar-referencias.dto';
+import { ListarReferenciasResponseDTO } from './dto/listar-referencias-response.dto';
+import { VincularReferenciaDTO } from './dto/vincular-referencia.dto';
+import { VincularReferenciaResponseDTO } from './dto/vincular-referencia-response.dto';
+import { DesvincularReferenciaResponseDTO } from './dto/desvincular-referencia-response.dto';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { Logger } from '@nestjs/common';
 import { ApiStandardResponse, ApiErrorResponse } from '../../common/decorators/api-response.decorator';
@@ -26,16 +31,43 @@ export class ReferenciaController {
     return this.referenciaService.criarReferencia(referenciaDto)
   }
 
-  @Delete(':id')
+  @Get()
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('JWT-auth')
-  @ApiOperation({ summary: 'Deletar uma referência' })
-  @ApiStandardResponse(200, 'Referência deletada com sucesso')
+  @ApiOperation({ summary: 'Listar referências' })
+  @ApiStandardResponse(200, 'Referências recuperadas com sucesso', ListarReferenciasResponseDTO)
+  @ApiErrorResponse(401, 'Não autenticado')
+  async listarReferencias(
+    @Query() query: ListarReferenciasDTO
+  ): Promise<ListarReferenciasResponseDTO> {
+    this.logger.log("Listando referências")
+    return this.referenciaService.listarReferencias(query)
+  }
+
+  @Post('vincular')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Vincular uma referência' })
+  @ApiStandardResponse(201, 'Referência vinculada com sucesso', VincularReferenciaResponseDTO)
+  @ApiErrorResponse(400, 'Dados inválidos')
+  @ApiErrorResponse(401, 'Não autenticado')
+  async vincularReferencia(
+    @Body() referenciaDto: VincularReferenciaDTO
+  ): Promise<VincularReferenciaResponseDTO> {
+    this.logger.log("Vinculando referência")
+    return this.referenciaService.vincularReferencia(referenciaDto)
+  }
+
+  @Patch(':id/desvincular')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Desvincular uma referência' })
+  @ApiStandardResponse(200, 'Referência desvinculada com sucesso', DesvincularReferenciaResponseDTO)
   @ApiErrorResponse(400, 'Dados inválidos')
   @ApiErrorResponse(401, 'Não autenticado')
   @ApiErrorResponse(404, 'Referência não encontrada')
-  async deletarReferencia(@Param('id') id: string): Promise<void> {
-    this.logger.log("Deletando referência")
-    return this.referenciaService.deletarReferencia(id)
+  async desvincularReferencia(@Param('id') id: string): Promise<DesvincularReferenciaResponseDTO> {
+    this.logger.log("Desvinculando referência")
+    return this.referenciaService.desvincularReferencia(id)
   }
 }
