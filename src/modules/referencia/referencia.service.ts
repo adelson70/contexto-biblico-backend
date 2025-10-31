@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { CriarReferenciaDTO } from './dto/referencia-criar.dto';
 import { CriarReferenciaResponse } from './dto/referencia-response.dto';
 import { ListarReferenciasDTO } from './dto/listar-referencias.dto';
@@ -7,11 +7,31 @@ import { VincularReferenciaDTO } from './dto/vincular-referencia.dto';
 import { VincularReferenciaResponseDTO } from './dto/vincular-referencia-response.dto';
 import { DesvincularReferenciaResponseDTO } from './dto/desvincular-referencia-response.dto';
 import { PrismaService } from '../prisma/prisma.service';
+import { LivrosPermissaoService } from '../../common/services/livros-permissao.service';
 
 @Injectable()
 export class ReferenciaService {
-  constructor(private readonly prisma: PrismaService) {}
-  async criarReferencia(referenciaDto: CriarReferenciaDTO): Promise<CriarReferenciaResponse> {
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly livrosPermissaoService: LivrosPermissaoService,
+  ) {}
+  async criarReferencia(
+    referenciaDto: CriarReferenciaDTO,
+    userId: number,
+    isAdmin: boolean,
+  ): Promise<CriarReferenciaResponse> {
+    // Validar permissão do livro
+    const temPermissao = await this.livrosPermissaoService.validarPermissaoLivro(
+      userId,
+      isAdmin,
+      referenciaDto.livro,
+    );
+
+    if (!temPermissao) {
+      throw new ForbiddenException(
+        `Você não tem permissão para criar referências no livro "${referenciaDto.livro}"`,
+      );
+    }
 
     const referencia = await this.prisma.referencias.create({
       data: {
@@ -31,14 +51,49 @@ export class ReferenciaService {
     };
   }
 
-  async deletarReferencia(id: string): Promise<void> {
+  async deletarReferencia(
+    id: string,
+    userId: number,
+    isAdmin: boolean,
+  ): Promise<void> {
+    // Buscar a referência para verificar a permissão
+    const referencia = await this.prisma.referencias.findUnique({
+      where: { id: parseInt(id) },
+      select: { livro: true, isDeleted: true },
+    });
+
+    if (!referencia) {
+      throw new NotFoundException('Referência não encontrada');
+    }
+
+    if (referencia.isDeleted) {
+      throw new NotFoundException('Referência não encontrada');
+    }
+
+    // Validar permissão do livro
+    const temPermissao = await this.livrosPermissaoService.validarPermissaoLivro(
+      userId,
+      isAdmin,
+      referencia.livro,
+    );
+
+    if (!temPermissao) {
+      throw new ForbiddenException(
+        `Você não tem permissão para deletar referências do livro "${referencia.livro}"`,
+      );
+    }
+
     await this.prisma.referencias.update({
       where: { id: parseInt(id) },
       data: { isDeleted: true },
     });
   }
 
-  async listarReferencias(listarDto: ListarReferenciasDTO): Promise<ListarReferenciasResponseDTO> {
+  async listarReferencias(
+    listarDto: ListarReferenciasDTO,
+    userId: number,
+    isAdmin: boolean,
+  ): Promise<ListarReferenciasResponseDTO> {
     const { page, limit, livro, capitulo, versiculo } = listarDto;
 
     // Construir filtros
@@ -46,7 +101,53 @@ export class ReferenciaService {
       isDeleted: false,
     };
 
+    // Se não for admin, filtrar apenas pelos livros permitidos
+    if (!isAdmin) {
+      const livrosPermitidos = await this.livrosPermissaoService.obterLivrosPermitidos(
+        userId,
+        isAdmin,
+      );
+      
+      // Se não tiver nenhum livro permitido, retornar lista vazia
+      if (livrosPermitidos.length === 0) {
+        return {
+          data: [],
+          meta: {
+            total: 0,
+            page: page || 1,
+            limit: limit || 0,
+            totalPages: 0,
+          },
+        };
+      }
+
+      where.livro = {
+        in: livrosPermitidos,
+      };
+    }
+
     if (livro) {
+      // Se não for admin, validar se o livro está nos permitidos
+      if (!isAdmin) {
+        const temPermissao = await this.livrosPermissaoService.validarPermissaoLivro(
+          userId,
+          isAdmin,
+          livro,
+        );
+
+        if (!temPermissao) {
+          return {
+            data: [],
+            meta: {
+              total: 0,
+              page: page || 1,
+              limit: limit || 0,
+              totalPages: 0,
+            },
+          };
+        }
+      }
+
       where.livro = livro;
     }
 
@@ -114,7 +215,24 @@ export class ReferenciaService {
     };
   }
 
-  async vincularReferencia(referenciaDto: VincularReferenciaDTO): Promise<VincularReferenciaResponseDTO> {
+  async vincularReferencia(
+    referenciaDto: VincularReferenciaDTO,
+    userId: number,
+    isAdmin: boolean,
+  ): Promise<VincularReferenciaResponseDTO> {
+    // Validar permissão do livro
+    const temPermissao = await this.livrosPermissaoService.validarPermissaoLivro(
+      userId,
+      isAdmin,
+      referenciaDto.livro,
+    );
+
+    if (!temPermissao) {
+      throw new ForbiddenException(
+        `Você não tem permissão para vincular referências no livro "${referenciaDto.livro}"`,
+      );
+    }
+
     const referencia = await this.prisma.referencias.create({
       data: {
         referencia: referenciaDto.referencia,
@@ -134,8 +252,39 @@ export class ReferenciaService {
     };
   }
 
-  async desvincularReferencia(id: string): Promise<DesvincularReferenciaResponseDTO> {
+  async desvincularReferencia(
+    id: string,
+    userId: number,
+    isAdmin: boolean,
+  ): Promise<DesvincularReferenciaResponseDTO> {
     const idNumero = parseInt(id);
+    
+    // Buscar a referência para verificar a permissão
+    const referencia = await this.prisma.referencias.findUnique({
+      where: { id: idNumero },
+      select: { livro: true, isDeleted: true },
+    });
+
+    if (!referencia) {
+      throw new NotFoundException('Referência não encontrada');
+    }
+
+    if (referencia.isDeleted) {
+      throw new NotFoundException('Referência não encontrada');
+    }
+
+    // Validar permissão do livro
+    const temPermissao = await this.livrosPermissaoService.validarPermissaoLivro(
+      userId,
+      isAdmin,
+      referencia.livro,
+    );
+
+    if (!temPermissao) {
+      throw new ForbiddenException(
+        `Você não tem permissão para desvincular referências do livro "${referencia.livro}"`,
+      );
+    }
     
     await this.prisma.referencias.update({
       where: { id: idNumero },

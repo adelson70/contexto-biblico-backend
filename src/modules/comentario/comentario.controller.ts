@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Logger, Param, Post, Put, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Logger, Param, Post, Put, Query, Req, UseGuards } from '@nestjs/common';
 import { ComentarioService } from './comentario.service';
 import { ApiOperation, ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { ApiErrorResponse, ApiStandardResponse } from 'src/common/decorators/api-response.decorator';
@@ -7,6 +7,7 @@ import { AtualizarComentarioDTO } from './dto/comentario-atualizar.dto';
 import { CriarComentarioResponse } from './dto/comentario-response.dto';
 import { ListarComentariosQueryDTO, ListarComentariosResponse } from './dto/comentario-listar.dto';
 import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
+import { Request } from 'express';
 
 @ApiTags('Comentário')
 @Controller('comentario')
@@ -22,10 +23,12 @@ export class ComentarioController {
   @ApiErrorResponse(400, 'Dados inválidos')
   @ApiErrorResponse(401, 'Não autenticado')
   async listarComentarios(
-    @Query() queryDto: ListarComentariosQueryDTO
+    @Query() queryDto: ListarComentariosQueryDTO,
+    @Req() request: Request,
   ): Promise<ListarComentariosResponse> {
+    const user = request.user as any;
     this.logger.log(`Listando comentários${queryDto.livro ? ` para livro: ${queryDto.livro}` : ''}`)
-    return this.comentarioService.listarComentariosPorLivro(queryDto)
+    return this.comentarioService.listarComentariosPorLivro(queryDto, user.userId, user.isAdmin)
   }
 
   @Post()
@@ -36,10 +39,12 @@ export class ComentarioController {
   @ApiErrorResponse(400, 'Dados inválidos')
   @ApiErrorResponse(401, 'Não autenticado')
   async criarComentario(
-    @Body() comentarioDto: CriarComentarioDTO
+    @Body() comentarioDto: CriarComentarioDTO,
+    @Req() request: Request,
   ): Promise <CriarComentarioResponse> {
+    const user = request.user as any;
     this.logger.log("Criando comentario")
-    return this.comentarioService.criarComentario(comentarioDto)
+    return this.comentarioService.criarComentario(comentarioDto, user.userId, user.isAdmin)
   }
 
   @Delete(':id')
@@ -50,9 +55,10 @@ export class ComentarioController {
   @ApiErrorResponse(400, 'Dados inválidos')
   @ApiErrorResponse(401, 'Não autenticado')
   @ApiErrorResponse(404, 'Comentario não encontrada')
-  async deletarComentario(@Param('id') id: string): Promise<void> {
+  async deletarComentario(@Param('id') id: string, @Req() request: Request): Promise<void> {
+    const user = request.user as any;
     this.logger.log("Deletando comentario")
-    return this.comentarioService.deletarComentario(id)
+    return this.comentarioService.deletarComentario(id, user.userId, user.isAdmin)
   }
 
   @Put(':id')
@@ -63,8 +69,13 @@ export class ComentarioController {
   @ApiErrorResponse(400, 'Dados inválidos')
   @ApiErrorResponse(401, 'Não autenticado')
   @ApiErrorResponse(404, 'Comentario não encontrada')
-  async atualizarComentario(@Param('id') id: string, @Body() comentarioDto: AtualizarComentarioDTO): Promise<void> {
+  async atualizarComentario(
+    @Param('id') id: string, 
+    @Body() comentarioDto: AtualizarComentarioDTO,
+    @Req() request: Request,
+  ): Promise<void> {
+    const user = request.user as any;
     this.logger.log("Atualizando comentario")
-    return this.comentarioService.atualizarComentario(id, comentarioDto)
+    return this.comentarioService.atualizarComentario(id, comentarioDto, user.userId, user.isAdmin)
   }
 }

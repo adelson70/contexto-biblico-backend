@@ -1,4 +1,4 @@
-import { Controller, Body, Post, Patch, Get, Param, Query, UseGuards } from '@nestjs/common';
+import { Controller, Body, Post, Patch, Get, Param, Query, Req, UseGuards } from '@nestjs/common';
 import { ReferenciaService } from './referencia.service';
 import { CriarReferenciaDTO } from './dto/referencia-criar.dto';
 import { CriarReferenciaResponse } from './dto/referencia-response.dto';
@@ -11,6 +11,7 @@ import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { Logger } from '@nestjs/common';
 import { ApiStandardResponse, ApiErrorResponse } from '../../common/decorators/api-response.decorator';
 import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
+import { Request } from 'express';
 
 @ApiTags('Referência')
 @Controller('referencia')
@@ -25,10 +26,12 @@ export class ReferenciaController {
   @ApiErrorResponse(400, 'Dados inválidos')
   @ApiErrorResponse(401, 'Não autenticado')
   async criarReferencia(
-    @Body() referenciaDto: CriarReferenciaDTO
+    @Body() referenciaDto: CriarReferenciaDTO,
+    @Req() request: Request,
   ): Promise <CriarReferenciaResponse> {
+    const user = request.user as any;
     this.logger.log("Criando referência")
-    return this.referenciaService.criarReferencia(referenciaDto)
+    return this.referenciaService.criarReferencia(referenciaDto, user.userId, user.isAdmin)
   }
 
   @Get()
@@ -38,10 +41,12 @@ export class ReferenciaController {
   @ApiStandardResponse(200, 'Referências recuperadas com sucesso', ListarReferenciasResponseDTO)
   @ApiErrorResponse(401, 'Não autenticado')
   async listarReferencias(
-    @Query() query: ListarReferenciasDTO
+    @Query() query: ListarReferenciasDTO,
+    @Req() request: Request,
   ): Promise<ListarReferenciasResponseDTO> {
+    const user = request.user as any;
     this.logger.log("Listando referências")
-    return this.referenciaService.listarReferencias(query)
+    return this.referenciaService.listarReferencias(query, user.userId, user.isAdmin)
   }
 
   @Post('vincular')
@@ -52,10 +57,12 @@ export class ReferenciaController {
   @ApiErrorResponse(400, 'Dados inválidos')
   @ApiErrorResponse(401, 'Não autenticado')
   async vincularReferencia(
-    @Body() referenciaDto: VincularReferenciaDTO
+    @Body() referenciaDto: VincularReferenciaDTO,
+    @Req() request: Request,
   ): Promise<VincularReferenciaResponseDTO> {
+    const user = request.user as any;
     this.logger.log("Vinculando referência")
-    return this.referenciaService.vincularReferencia(referenciaDto)
+    return this.referenciaService.vincularReferencia(referenciaDto, user.userId, user.isAdmin)
   }
 
   @Patch(':id/desvincular')
@@ -66,8 +73,12 @@ export class ReferenciaController {
   @ApiErrorResponse(400, 'Dados inválidos')
   @ApiErrorResponse(401, 'Não autenticado')
   @ApiErrorResponse(404, 'Referência não encontrada')
-  async desvincularReferencia(@Param('id') id: string): Promise<DesvincularReferenciaResponseDTO> {
+  async desvincularReferencia(
+    @Param('id') id: string,
+    @Req() request: Request,
+  ): Promise<DesvincularReferenciaResponseDTO> {
+    const user = request.user as any;
     this.logger.log("Desvinculando referência")
-    return this.referenciaService.desvincularReferencia(id)
+    return this.referenciaService.desvincularReferencia(id, user.userId, user.isAdmin)
   }
 }

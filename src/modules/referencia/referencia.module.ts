@@ -4,10 +4,11 @@ import { ReferenciaService } from './referencia.service';
 import { PrismaModule } from '../prisma/prisma.module';
 import { Logger } from '@nestjs/common';
 import { AuthModule } from '../auth/auth.module';
+import { BibliaModule } from '../../common/biblia.module';
 import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
 
 @Module({
-  imports: [PrismaModule, AuthModule],
+  imports: [PrismaModule, AuthModule, BibliaModule],
   controllers: [ReferenciaController],
   providers: [ReferenciaService, Logger, JwtAuthGuard],
 })
