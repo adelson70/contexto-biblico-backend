@@ -12,6 +12,9 @@ import { ListarUsuariosResponseDto } from './dto/listar-usuarios-response.dto';
 import { LoginDto } from './dto/login.dto';
 import { LoginResponseDto } from './dto/login-response.dto';
 import { JwtPayload } from './interfaces/jwt-payload.interface';
+import { VincularLivroUsuarioResponseDto } from './dto/vincular-livro-usuario.dto';
+import { DesvincularLivroUsuarioResponseDto } from './dto/desvincular-livro-usuario.dto';
+import { ListarLivrosUsuarioResponseDto } from './dto/listar-livros-usuario.dto';
 
 @Injectable()
 export class AuthService {
@@ -423,5 +426,123 @@ export class AuthService {
       // Apenas loga o erro silenciosamente
       console.error('Erro ao registrar login:', error);
     }
+  }
+
+  /**
+   * Vincula um livro a um usuário
+   * @param usuarioId - ID do usuário
+   * @param livroId - ID do livro (1 a 66)
+   * @returns Dados do registro criado
+   * @throws NotFoundException se o usuário não existir
+   * @throws ConflictException se o livro já estiver vinculado
+   */
+  async vincularLivroUsuario(usuarioId: number, livroId: number): Promise<VincularLivroUsuarioResponseDto> {
+    // Verificar se o usuário existe
+    const usuario = await this.prisma.usuarios.findUnique({
+      where: { id: usuarioId },
+    });
+
+    if (!usuario || usuario.isDeleted) {
+      throw new NotFoundException('Usuário não encontrado');
+    }
+
+    // Verificar se o livro já está vinculado
+    const livroVinculado = await this.prisma.usuario_livros.findUnique({
+      where: {
+        usuario_id_livro_id: {
+          usuario_id: usuarioId,
+          livro_id: livroId,
+        },
+      },
+    });
+
+    if (livroVinculado) {
+      throw new ConflictException('Livro já está vinculado a este usuário');
+    }
+
+    // Vincular o livro
+    const registro = await this.prisma.usuario_livros.create({
+      data: {
+        usuario_id: usuarioId,
+        livro_id: livroId,
+      },
+    });
+
+    return {
+      id: registro.id,
+      usuario_id: registro.usuario_id,
+      livro_id: registro.livro_id,
+      createdAt: registro.createdAt,
+      message: 'Livro vinculado com sucesso',
+    };
+  }
+
+  /**
+   * Desvincula um livro de um usuário
+   * @param usuarioId - ID do usuário
+   * @param livroId - ID do livro (1 a 66)
+   * @returns Confirmação de desvinculação
+   * @throws NotFoundException se o vínculo não existir
+   */
+  async desvincularLivroUsuario(usuarioId: number, livroId: number): Promise<DesvincularLivroUsuarioResponseDto> {
+    // Verificar se o vínculo existe
+    const livroVinculado = await this.prisma.usuario_livros.findUnique({
+      where: {
+        usuario_id_livro_id: {
+          usuario_id: usuarioId,
+          livro_id: livroId,
+        },
+      },
+    });
+
+    if (!livroVinculado) {
+      throw new NotFoundException('Vínculo não encontrado');
+    }
+
+    // Desvincular o livro
+    await this.prisma.usuario_livros.delete({
+      where: {
+        usuario_id_livro_id: {
+          usuario_id: usuarioId,
+          livro_id: livroId,
+        },
+      },
+    });
+
+    return {
+      message: 'Livro desvinculado com sucesso',
+    };
+  }
+
+  /**
+   * Lista todos os livros vinculados a um usuário
+   * @param usuarioId - ID do usuário
+   * @returns Lista de livros do usuário
+   * @throws NotFoundException se o usuário não existir
+   */
+  async listarLivrosUsuario(usuarioId: number): Promise<ListarLivrosUsuarioResponseDto> {
+    // Verificar se o usuário existe
+    const usuario = await this.prisma.usuarios.findUnique({
+      where: { id: usuarioId },
+    });
+
+    if (!usuario || usuario.isDeleted) {
+      throw new NotFoundException('Usuário não encontrado');
+    }
+
+    // Buscar livros vinculados
+    const livros = await this.prisma.usuario_livros.findMany({
+      where: {
+        usuario_id: usuarioId,
+      },
+      orderBy: {
+        livro_id: 'asc',
+      },
+    });
+
+    return {
+      livros,
+      total: livros.length,
+    };
   }
 }

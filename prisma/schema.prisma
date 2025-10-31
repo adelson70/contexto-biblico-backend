@@ -65,6 +65,7 @@ model usuarios {
   updatedAt        DateTime @default(now())
   isDeleted        Boolean  @default(false)
   logins           usuario_logins[]
+  livros_acesso    usuario_livros[]
 
   @@index([email])
   @@index([isDeleted])
@@ -87,4 +88,17 @@ model usuario_logins {
   @@index([estado])
   @@index([cidade])
   @@index([createdAt])
+}
+
+model usuario_livros {
+  id         Int      @id @default(autoincrement())
+  usuario_id Int
+  livro_id   Int
+  createdAt  DateTime @default(now())
+
+  usuario    usuarios @relation(fields: [usuario_id], references: [id], onDelete: Cascade)
+
+  @@unique([usuario_id, livro_id])
+  @@index([usuario_id])
+  @@index([livro_id])
 }

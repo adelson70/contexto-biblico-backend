@@ -13,6 +13,9 @@ import { AtualizarUsuarioDto } from './dto/atualizar-usuario.dto';
 import { AtualizarUsuarioResponseDto } from './dto/atualizar-usuario-response.dto';
 import { ListarUsuariosQueryDto } from './dto/listar-usuarios-query.dto';
 import { ListarUsuariosResponseDto } from './dto/listar-usuarios-response.dto';
+import { VincularLivroUsuarioDto, VincularLivroUsuarioResponseDto } from './dto/vincular-livro-usuario.dto';
+import { DesvincularLivroUsuarioResponseDto } from './dto/desvincular-livro-usuario.dto';
+import { ListarLivrosUsuarioResponseDto } from './dto/listar-livros-usuario.dto';
 import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
 import { AdminGuard } from '../../guards/admin.guard';
 
@@ -273,5 +276,95 @@ export class AuthController {
   ): Promise<DeletarUsuarioResponseDto> {
     this.logger.log(`Deletando usuário: ${id}`);
     return this.authService.deletarUsuario(id);
+  }
+
+  @Post(':id/livros')
+  @UseGuards(AdminGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Vincular livro a um usuário (somente admin)' })
+  @ApiResponse({
+    status: 201,
+    description: 'Livro vinculado com sucesso',
+    type: VincularLivroUsuarioResponseDto,
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Não autenticado',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Acesso negado - somente administradores',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Usuário não encontrado',
+  })
+  @ApiResponse({
+    status: 409,
+    description: 'Livro já está vinculado a este usuário',
+  })
+  async vincularLivroUsuario(
+    @Param('id') id: string,
+    @Body() vincularLivroDto: VincularLivroUsuarioDto,
+  ): Promise<VincularLivroUsuarioResponseDto> {
+    this.logger.log(`Vinculando livro ${vincularLivroDto.livro_id} ao usuário ${id}`);
+    return this.authService.vincularLivroUsuario(parseInt(id, 10), vincularLivroDto.livro_id);
+  }
+
+  @Delete(':id/livros/:livroId')
+  @UseGuards(AdminGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Desvincular livro de um usuário (somente admin)' })
+  @ApiResponse({
+    status: 200,
+    description: 'Livro desvinculado com sucesso',
+    type: DesvincularLivroUsuarioResponseDto,
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Não autenticado',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Acesso negado - somente administradores',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Vínculo não encontrado',
+  })
+  async desvincularLivroUsuario(
+    @Param('id') id: string,
+    @Param('livroId') livroId: string,
+  ): Promise<DesvincularLivroUsuarioResponseDto> {
+    this.logger.log(`Desvinculando livro ${livroId} do usuário ${id}`);
+    return this.authService.desvincularLivroUsuario(parseInt(id, 10), parseInt(livroId, 10));
+  }
+
+  @Get(':id/livros')
+  @UseGuards(AdminGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Listar livros de um usuário (somente admin)' })
+  @ApiResponse({
+    status: 200,
+    description: 'Lista de livros retornada com sucesso',
+    type: ListarLivrosUsuarioResponseDto,
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Não autenticado',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Acesso negado - somente administradores',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Usuário não encontrado',
+  })
+  async listarLivrosUsuario(
+    @Param('id') id: string,
+  ): Promise<ListarLivrosUsuarioResponseDto> {
+    this.logger.log(`Listando livros do usuário ${id}`);
+    return this.authService.listarLivrosUsuario(parseInt(id, 10));
   }
 }
