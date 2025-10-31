@@ -162,12 +162,16 @@ export class AuthController {
 
     this.logger.log(`Login bem-sucedido: ${loginDto.email} - IP: ${ip}`);
     
+    // Garantir que livrosPermitidos sempre seja incluído na resposta
+    const livrosPermitidos = tokens.livrosPermitidos ?? null;
+    
     return {
       accessToken: tokens.accessToken,
-      userId: result.userId,
-      email: result.email,
-      nome: result.nome,
-      isAdmin: result.isAdmin,
+      userId: tokens.userId,
+      email: tokens.email,
+      nome: tokens.nome ?? undefined,
+      isAdmin: tokens.isAdmin,
+      livrosPermitidos: livrosPermitidos,
     };
   }
 
@@ -213,6 +217,7 @@ export class AuthController {
       email: result.email,
       nome: result.nome ?? undefined,
       isAdmin: result.isAdmin,
+      livrosPermitidos: result.livrosPermitidos,
     };
   }
 

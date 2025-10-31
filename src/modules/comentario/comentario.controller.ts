@@ -7,7 +7,7 @@ import { AtualizarComentarioDTO } from './dto/comentario-atualizar.dto';
 import { CriarComentarioResponse } from './dto/comentario-response.dto';
 import { ListarComentariosQueryDTO, ListarComentariosResponse } from './dto/comentario-listar.dto';
 import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
-import { Request } from 'express';
+import type { Request } from 'express';
 
 @ApiTags('Comentário')
 @Controller('comentario')

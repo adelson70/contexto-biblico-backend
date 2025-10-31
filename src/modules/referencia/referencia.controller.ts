@@ -11,7 +11,7 @@ import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { Logger } from '@nestjs/common';
 import { ApiStandardResponse, ApiErrorResponse } from '../../common/decorators/api-response.decorator';
 import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
-import { Request } from 'express';
+import type { Request } from 'express';
 
 @ApiTags('Referência')
 @Controller('referencia')

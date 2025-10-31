@@ -282,12 +282,30 @@ export class AuthService {
     // Salvar o hash do refresh token no banco de dados
     await this.setCurrentRefreshToken(usuario.id, refreshToken);
 
+    // Buscar livros permitidos (apenas para usuários não-admin)
+    let livrosPermitidos: number[] | null = null;
+    if (!usuario.isAdmin) {
+      const livrosPermissoes = await this.prisma.usuario_livros.findMany({
+        where: {
+          usuario_id: usuario.id,
+        },
+        select: {
+          livro_id: true,
+        },
+        orderBy: {
+          livro_id: 'asc',
+        },
+      });
+      livrosPermitidos = livrosPermissoes.map(permissao => permissao.livro_id);
+    }
+
     return {
       accessToken,
       userId: usuario.id,
       email: usuario.email,
       nome: usuario.nome ?? undefined,
       isAdmin: usuario.isAdmin,
+      livrosPermitidos,
     };
   }
 
@@ -374,6 +392,23 @@ export class AuthService {
       throw new UnauthorizedException('Usuário não encontrado');
     }
 
+    // Buscar livros permitidos (apenas para usuários não-admin)
+    let livrosPermitidos: number[] | null = null;
+    if (!isAdmin) {
+      const livrosPermissoes = await this.prisma.usuario_livros.findMany({
+        where: {
+          usuario_id: userId,
+        },
+        select: {
+          livro_id: true,
+        },
+        orderBy: {
+          livro_id: 'asc',
+        },
+      });
+      livrosPermitidos = livrosPermissoes.map(permissao => permissao.livro_id);
+    }
+
     return {
       accessToken,
       refreshToken,
@@ -381,6 +416,7 @@ export class AuthService {
       email: usuario.email,
       nome: usuario.nome,
       isAdmin: usuario.is_admin,
+      livrosPermitidos: livrosPermitidos !== null ? livrosPermitidos : null,
     };
   }
   async removeRefreshToken(userId: number): Promise<void> {

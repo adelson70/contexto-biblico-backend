@@ -31,5 +31,13 @@ export class RefreshResponseDto {
     example: false,
   })
   isAdmin: boolean;
+
+  @ApiProperty({
+    description: 'IDs dos livros permitidos para o usuário (null para admin que tem acesso a todos)',
+    example: [1, 2, 3],
+    required: false,
+    nullable: true,
+  })
+  livrosPermitidos: number[] | null;
 }
 
