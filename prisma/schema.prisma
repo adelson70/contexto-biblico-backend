@@ -64,9 +64,27 @@ model usuarios {
   createdAt        DateTime @default(now())
   updatedAt        DateTime @default(now())
   isDeleted        Boolean  @default(false)
+  logins           usuario_logins[]
 
   @@index([email])
   @@index([isDeleted])
   @@index([is_admin])
   @@index([refresh_token_hash])
+}
+
+model usuario_logins {
+  id               Int      @id @default(autoincrement())
+  usuario_id       Int
+  ip               String
+  cidade           String?
+  estado           String?
+  createdAt        DateTime @default(now())
+
+  usuario          usuarios @relation(fields: [usuario_id], references: [id], onDelete: Cascade)
+
+  @@index([id])
+  @@index([usuario_id])
+  @@index([estado])
+  @@index([cidade])
+  @@index([createdAt])
 }

@@ -117,6 +117,7 @@ export class AuthController {
   })
   async login(
     @Body() loginDto: LoginDto,
+    @Req() request: Request,
     @Res({ passthrough: true }) response: Response,
   ): Promise<LoginResponseDto> {
     this.logger.log(`Tentativa de login: ${loginDto.email}`);
@@ -145,7 +146,18 @@ export class AuthController {
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 dias
     });
 
-    this.logger.log(`Login bem-sucedido: ${loginDto.email}`);
+    // Captura IP do cliente (considera proxy reverso)
+    const ip = 
+      (request.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() ||
+      (request.headers['x-real-ip'] as string) ||
+      (request as any).ip ||
+      (request as any).connection?.remoteAddress ||
+      'IP desconhecido';
+
+    // Registra o login do usuário
+    await this.authService.registrarLogin(result.userId, ip);
+
+    this.logger.log(`Login bem-sucedido: ${loginDto.email} - IP: ${ip}`);
     
     return {
       accessToken: tokens.accessToken,

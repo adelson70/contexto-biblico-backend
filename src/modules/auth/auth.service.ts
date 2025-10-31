@@ -2,6 +2,7 @@ import { Injectable, ConflictException, NotFoundException, ForbiddenException, U
 import { JwtService, JwtSignOptions } from '@nestjs/jwt';
 import { PrismaService } from '../prisma/prisma.service';
 import { BcryptService } from '../../common/services/bcrypt.service';
+import { GeolocalizacaoService } from '../../common/services/geolocalizacao.service';
 import { CriarUsuarioDto } from './dto/criar-usuario.dto';
 import { CriarUsuarioResponseDto } from './dto/criar-usuario-response.dto';
 import { DeletarUsuarioResponseDto } from './dto/deletar-usuario-response.dto';
@@ -18,6 +19,7 @@ export class AuthService {
     private readonly prisma: PrismaService,
     private readonly bcryptService: BcryptService,
     private readonly jwtService: JwtService,
+    private readonly geolocalizacaoService: GeolocalizacaoService,
   ) {}
 
   /**
@@ -393,6 +395,33 @@ export class AuthService {
       return payload as JwtPayload;
     } catch (error) {
       return null;
+    }
+  }
+
+  /**
+   * Registra um login de usuário com IP, cidade e estado
+   * @param userId - ID do usuário
+   * @param ip - Endereço IP do usuário
+   * @returns Registro de login criado
+   */
+  async registrarLogin(userId: number, ip: string): Promise<void> {
+    try {
+      // Obtém geolocalização do IP
+      const geolocalizacao = this.geolocalizacaoService.obterGeolocalizacao(ip);
+
+      // Cria o registro de login
+      await this.prisma.usuario_logins.create({
+        data: {
+          usuario_id: userId,
+          ip: ip,
+          cidade: geolocalizacao.cidade,
+          estado: geolocalizacao.estado,
+        },
+      });
+    } catch (error) {
+      // Não deixa o erro de registro impactar o login
+      // Apenas loga o erro silenciosamente
+      console.error('Erro ao registrar login:', error);
     }
   }
 }

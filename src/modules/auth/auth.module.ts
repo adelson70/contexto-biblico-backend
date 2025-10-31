@@ -6,6 +6,7 @@ import { AuthService } from './auth.service';
 import { Logger } from '@nestjs/common';
 import { PrismaModule } from '../prisma/prisma.module';
 import { BcryptService } from '../../common/services/bcrypt.service';
+import { GeolocalizacaoService } from '../../common/services/geolocalizacao.service';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { JwtRefreshStrategy } from './strategies/jwt-refresh.strategy';
 import { AdminGuard } from '../../guards/admin.guard';
@@ -21,7 +22,7 @@ import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, BcryptService, Logger, JwtStrategy, JwtRefreshStrategy, AdminGuard, JwtAuthGuard],
+  providers: [AuthService, BcryptService, GeolocalizacaoService, Logger, JwtStrategy, JwtRefreshStrategy, AdminGuard, JwtAuthGuard],
   exports: [AuthService],
 })
 export class AuthModule {}
