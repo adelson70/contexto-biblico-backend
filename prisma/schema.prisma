@@ -8,6 +8,12 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum TipoAcessoLivros {
+  TODOS
+  ESPECIFICO
+  LIVRE
+}
+
 model comentarios {
   id        Int      @id @default(autoincrement())
   livro String
@@ -64,8 +70,10 @@ model usuarios {
   createdAt        DateTime @default(now())
   updatedAt        DateTime @default(now())
   isDeleted        Boolean  @default(false)
+
   logins           usuario_logins[]
   livros_acesso    usuario_livros[]
+  convites_criados convites[]
 
   @@index([email])
   @@index([isDeleted])
@@ -100,5 +108,42 @@ model usuario_livros {
 
   @@unique([usuario_id, livro_id])
   @@index([usuario_id])
+  @@index([livro_id])
+}
+
+model convites {
+  id                    Int               @id @default(autoincrement())
+  nome                  String
+  hash                  String?           @unique
+  slug_personalizado    String?           @unique
+  expira_em             DateTime?
+  tipo_acesso_livros    TipoAcessoLivros  @default(LIVRE)
+  criado_por            Int
+  usos_realizados       Int               @default(0)
+  createdAt             DateTime          @default(now())
+  updatedAt             DateTime          @default(now())
+  isDeleted             Boolean           @default(false)
+
+  criado_por_usuario    usuarios          @relation(fields: [criado_por], references: [id], onDelete: Cascade)
+  livros                convite_livros[]
+
+  @@index([hash])
+  @@index([slug_personalizado])
+  @@index([isDeleted])
+  @@index([isDeleted, expira_em])
+  @@index([criado_por, isDeleted])
+  @@index([tipo_acesso_livros])
+}
+
+model convite_livros {
+  id         Int      @id @default(autoincrement())
+  convite_id Int
+  livro_id   Int
+  createdAt  DateTime @default(now())
+
+  convite    convites @relation(fields: [convite_id], references: [id], onDelete: Cascade)
+
+  @@unique([convite_id, livro_id])
+  @@index([convite_id])
   @@index([livro_id])
 }
