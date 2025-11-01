@@ -210,6 +210,115 @@ export class AuthService {
   }
 
   /**
+   * Atualiza os dados do próprio usuário (auto-edição)
+   * Não permite alterar is_admin
+   * @param userId - ID do usuário autenticado
+   * @param atualizarUsuarioDto - Dados para atualização
+   * @returns Dados do usuário atualizado
+   * @throws NotFoundException se o usuário não existir
+   * @throws ConflictException se o email já estiver em uso
+   */
+  async atualizarMeuUsuario(userId: number, atualizarUsuarioDto: AtualizarUsuarioDto): Promise<AtualizarUsuarioResponseDto> {
+    // Verificar se o usuário existe
+    const usuario = await this.prisma.usuarios.findUnique({
+      where: { id: userId },
+    });
+
+    if (!usuario || usuario.isDeleted) {
+      throw new NotFoundException('Usuário não encontrado');
+    }
+
+    // Preparar dados para atualização (não permitir alterar is_admin)
+    const dadosAtualizacao: any = {};
+
+    // Verificar se o email foi fornecido e se está disponível
+    if (atualizarUsuarioDto.email && atualizarUsuarioDto.email !== usuario.email) {
+      const emailJaExiste = await this.prisma.usuarios.findUnique({
+        where: { email: atualizarUsuarioDto.email },
+      });
+
+      if (emailJaExiste) {
+        throw new ConflictException('Email já está em uso por outro usuário');
+      }
+
+      dadosAtualizacao.email = atualizarUsuarioDto.email;
+    }
+
+    // Atualizar nome se fornecido
+    if (atualizarUsuarioDto.nome !== undefined) {
+      dadosAtualizacao.nome = atualizarUsuarioDto.nome || null;
+    }
+
+    // Atualizar senha se fornecida
+    if (atualizarUsuarioDto.senha) {
+      const senhaHash = await this.bcryptService.hash(atualizarUsuarioDto.senha);
+      dadosAtualizacao.senha = senhaHash;
+    }
+
+    // Não permitir alterar is_admin - ignorar se fornecido
+    // (usuários comuns não podem se tornar admin)
+
+    // Se não houver nada para atualizar, retornar os dados atuais
+    if (Object.keys(dadosAtualizacao).length === 0) {
+      return {
+        id: usuario.id,
+        email: usuario.email,
+        nome: usuario.nome,
+        updatedAt: usuario.updatedAt,
+        is_admin: usuario.is_admin,
+        message: 'Nenhuma alteração foi fornecida',
+      };
+    }
+
+    // Atualizar o usuário
+    const usuarioAtualizado = await this.prisma.usuarios.update({
+      where: { id: userId },
+      data: dadosAtualizacao,
+    });
+
+    return {
+      id: usuarioAtualizado.id,
+      email: usuarioAtualizado.email,
+      nome: usuarioAtualizado.nome,
+      updatedAt: usuarioAtualizado.updatedAt,
+      is_admin: usuarioAtualizado.is_admin,
+      message: 'Perfil atualizado com sucesso',
+    };
+  }
+
+  /**
+   * Lista os livros do próprio usuário autenticado
+   * @param userId - ID do usuário autenticado
+   * @returns Lista de livros do usuário
+   * @throws NotFoundException se o usuário não existir
+   */
+  async listarMeusLivros(userId: number): Promise<ListarLivrosUsuarioResponseDto> {
+    // Verificar se o usuário existe
+    const usuario = await this.prisma.usuarios.findUnique({
+      where: { id: userId },
+    });
+
+    if (!usuario || usuario.isDeleted) {
+      throw new NotFoundException('Usuário não encontrado');
+    }
+
+    // Buscar livros vinculados
+    const livros = await this.prisma.usuario_livros.findMany({
+      where: {
+        usuario_id: userId,
+      },
+      orderBy: {
+        livro_id: 'asc',
+      },
+    });
+
+    return {
+      livros,
+      total: livros.length,
+    };
+  }
+
+  /**
    * Deleta um usuário do sistema
    * @param id - ID do usuário a ser deletado
    * @returns Confirmação de deleção

@@ -110,6 +110,61 @@ export class AuthController {
     return this.authService.criarUsuarioPorConvite(hashOuSlug, criarUsuarioDto);
   }
 
+  @Put('me')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Atualizar dados do próprio perfil (usuário autenticado)' })
+  @ApiResponse({
+    status: 200,
+    description: 'Perfil atualizado com sucesso',
+    type: AtualizarUsuarioResponseDto,
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Não autenticado',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Usuário não encontrado',
+  })
+  @ApiResponse({
+    status: 409,
+    description: 'Email já está em uso por outro usuário',
+  })
+  async atualizarMeuPerfil(
+    @Req() request: Request,
+    @Body() atualizarUsuarioDto: AtualizarUsuarioDto,
+  ): Promise<AtualizarUsuarioResponseDto> {
+    const user = request.user as any;
+    this.logger.log(`Atualizando perfil do usuário: ${user.userId}`);
+    return this.authService.atualizarMeuUsuario(user.userId, atualizarUsuarioDto);
+  }
+
+  @Get('me/livros')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Listar livros do próprio usuário autenticado' })
+  @ApiResponse({
+    status: 200,
+    description: 'Lista de livros retornada com sucesso',
+    type: ListarLivrosUsuarioResponseDto,
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Não autenticado',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Usuário não encontrado',
+  })
+  async listarMeusLivros(
+    @Req() request: Request,
+  ): Promise<ListarLivrosUsuarioResponseDto> {
+    const user = request.user as any;
+    this.logger.log(`Listando livros do usuário: ${user.userId}`);
+    return this.authService.listarMeusLivros(user.userId);
+  }
+
   @Put(':id')
   @UseGuards(AdminGuard)
   @ApiBearerAuth('JWT-auth')
