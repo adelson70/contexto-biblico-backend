@@ -1,8 +1,9 @@
-import { Injectable, ConflictException, NotFoundException, ForbiddenException, UnauthorizedException } from '@nestjs/common';
+import { Injectable, ConflictException, NotFoundException, ForbiddenException, UnauthorizedException, BadRequestException } from '@nestjs/common';
 import { JwtService, JwtSignOptions } from '@nestjs/jwt';
 import { PrismaService } from '../prisma/prisma.service';
 import { BcryptService } from '../../common/services/bcrypt.service';
 import { GeolocalizacaoService } from '../../common/services/geolocalizacao.service';
+import { ConviteService } from '../convite/convite.service';
 import { CriarUsuarioDto } from './dto/criar-usuario.dto';
 import { CriarUsuarioResponseDto } from './dto/criar-usuario-response.dto';
 import { DeletarUsuarioResponseDto } from './dto/deletar-usuario-response.dto';
@@ -15,6 +16,9 @@ import { JwtPayload } from './interfaces/jwt-payload.interface';
 import { VincularLivroUsuarioResponseDto } from './dto/vincular-livro-usuario.dto';
 import { DesvincularLivroUsuarioResponseDto } from './dto/desvincular-livro-usuario.dto';
 import { ListarLivrosUsuarioResponseDto } from './dto/listar-livros-usuario.dto';
+import { CriarUsuarioPorConviteDto } from './dto/criar-usuario-por-convite.dto';
+import { CriarUsuarioPorConviteResponseDto } from './dto/criar-usuario-por-convite-response.dto';
+import { TipoAcessoLivros } from '../convite/dto/criar-convite.dto';
 
 @Injectable()
 export class AuthService {
@@ -23,6 +27,7 @@ export class AuthService {
     private readonly bcryptService: BcryptService,
     private readonly jwtService: JwtService,
     private readonly geolocalizacaoService: GeolocalizacaoService,
+    private readonly conviteService: ConviteService,
   ) {}
 
   /**
@@ -49,7 +54,7 @@ export class AuthService {
       data: {
         email: criarUsuarioDto.email,
         senha: senhaHash,
-        nome: criarUsuarioDto.nome || null,
+        nome: criarUsuarioDto.nome,
         is_admin: criarUsuarioDto.is_admin ?? false, // Se não fornecido, default é false
       },
     });
@@ -579,6 +584,120 @@ export class AuthService {
     return {
       livros,
       total: livros.length,
+    };
+  }
+
+  /**
+   * Cria um novo usuário através de um convite
+   * @param hashOuSlug - Hash ou slug do convite
+   * @param criarUsuarioDto - Dados do usuário a ser criado
+   * @returns Dados do usuário criado
+   * @throws NotFoundException se o convite não existir
+   * @throws ForbiddenException se o convite estiver inválido/expirado
+   * @throws ConflictException se o email já estiver em uso
+   * @throws BadRequestException se livros_ids for obrigatório mas não fornecido (tipo LIVRE)
+   */
+  async criarUsuarioPorConvite(
+    hashOuSlug: string,
+    criarUsuarioDto: CriarUsuarioPorConviteDto,
+  ): Promise<CriarUsuarioPorConviteResponseDto> {
+    // Validar o convite
+    const convite = await this.conviteService.validarConvite(hashOuSlug);
+
+    // Verificar se o convite é válido e não expirado
+    if (!convite.valido) {
+      throw new ForbiddenException('Convite expirado ou inválido');
+    }
+
+    // Se tipo é LIVRE, validar que livros_ids foi fornecido
+    if (convite.tipo_acesso_livros === TipoAcessoLivros.LIVRE) {
+      if (!criarUsuarioDto.livros_ids || criarUsuarioDto.livros_ids.length === 0) {
+        throw new BadRequestException('livros_ids é obrigatório quando tipo_acesso_livros é LIVRE. Selecione pelo menos um livro.');
+      }
+
+      // Validar que todos os livros estão entre 1 e 66
+      const livrosInvalidos = criarUsuarioDto.livros_ids.filter(id => id < 1 || id > 66);
+      if (livrosInvalidos.length > 0) {
+        throw new BadRequestException(`IDs de livros inválidos: ${livrosInvalidos.join(', ')}. Os IDs devem estar entre 1 e 66.`);
+      }
+    }
+
+    // Verificar se o email já existe
+    const usuarioExistente = await this.prisma.usuarios.findUnique({
+      where: { email: criarUsuarioDto.email },
+    });
+
+    if (usuarioExistente) {
+      throw new ConflictException('Email já está em uso');
+    }
+
+    // Hashear a senha
+    const senhaHash = await this.bcryptService.hash(criarUsuarioDto.senha);
+
+    // Criar usuário e aplicar permissões em transação
+    const resultado = await this.prisma.$transaction(async (prisma) => {
+      // Criar o usuário
+      const usuario = await prisma.usuarios.create({
+        data: {
+          email: criarUsuarioDto.email,
+          senha: senhaHash,
+          nome: criarUsuarioDto.nome,
+          is_admin: false, // Usuários criados por convite nunca são admin
+        },
+      });
+
+      // Aplicar permissões de livros baseado no tipo de acesso
+      if (convite.tipo_acesso_livros === TipoAcessoLivros.TODOS) {
+        // Vincular todos os livros (1-66)
+        const livrosData = Array.from({ length: 66 }, (_, i) => ({
+          usuario_id: usuario.id,
+          livro_id: i + 1,
+        }));
+        await prisma.usuario_livros.createMany({
+          data: livrosData,
+        });
+      } else if (convite.tipo_acesso_livros === TipoAcessoLivros.ESPECIFICO) {
+        // Vincular apenas livros do convite
+        const livrosData = convite.livros.map((livro) => ({
+          usuario_id: usuario.id,
+          livro_id: livro.livro_id,
+        }));
+        if (livrosData.length > 0) {
+          await prisma.usuario_livros.createMany({
+            data: livrosData,
+          });
+        }
+      } else if (convite.tipo_acesso_livros === TipoAcessoLivros.LIVRE) {
+        // Vincular apenas os livros escolhidos pelo usuário
+        const livrosData = criarUsuarioDto.livros_ids!.map((livroId) => ({
+          usuario_id: usuario.id,
+          livro_id: livroId,
+        }));
+        await prisma.usuario_livros.createMany({
+          data: livrosData,
+        });
+      }
+
+      // Incrementar contador de usos do convite
+      await prisma.convites.update({
+        where: { id: convite.id },
+        data: {
+          usos_realizados: {
+            increment: 1,
+          },
+        },
+      });
+
+      return usuario;
+    });
+
+    return {
+      id: resultado.id,
+      email: resultado.email,
+      nome: resultado.nome,
+      createdAt: resultado.createdAt,
+      is_admin: resultado.is_admin,
+      message: 'Usuário criado com sucesso através do convite',
     };
   }
 }

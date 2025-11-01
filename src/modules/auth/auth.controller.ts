@@ -4,6 +4,8 @@ import type { Response, Request } from 'express';
 import { AuthService } from './auth.service';
 import { CriarUsuarioDto } from './dto/criar-usuario.dto';
 import { CriarUsuarioResponseDto } from './dto/criar-usuario-response.dto';
+import { CriarUsuarioPorConviteDto } from './dto/criar-usuario-por-convite.dto';
+import { CriarUsuarioPorConviteResponseDto } from './dto/criar-usuario-por-convite-response.dto';
 import { LoginDto } from './dto/login.dto';
 import { LoginResponseDto } from './dto/login-response.dto';
 import { RefreshResponseDto } from './dto/refresh-response.dto';
@@ -75,6 +77,37 @@ export class AuthController {
   ): Promise<CriarUsuarioResponseDto> {
     this.logger.log(`Criando usuário: ${criarUsuarioDto.email}`);
     return this.authService.criarUsuario(criarUsuarioDto);
+  }
+
+  @Post('criar-por-convite/:hashOuSlug')
+  @ApiOperation({ summary: 'Criar um novo usuário através de um convite (público)' })
+  @ApiResponse({
+    status: 201,
+    description: 'Usuário criado com sucesso',
+    type: CriarUsuarioPorConviteResponseDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Dados inválidos ou livros_ids obrigatório quando tipo é LIVRE',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Convite inválido, expirado ou deletado',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Convite não encontrado',
+  })
+  @ApiResponse({
+    status: 409,
+    description: 'Email já está em uso',
+  })
+  async criarUsuarioPorConvite(
+    @Param('hashOuSlug') hashOuSlug: string,
+    @Body() criarUsuarioDto: CriarUsuarioPorConviteDto,
+  ): Promise<CriarUsuarioPorConviteResponseDto> {
+    this.logger.log(`Criando usuário por convite: ${hashOuSlug}, email: ${criarUsuarioDto.email}`);
+    return this.authService.criarUsuarioPorConvite(hashOuSlug, criarUsuarioDto);
   }
 
   @Put(':id')

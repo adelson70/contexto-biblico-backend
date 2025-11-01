@@ -11,11 +11,13 @@ import { JwtStrategy } from './strategies/jwt.strategy';
 import { JwtRefreshStrategy } from './strategies/jwt-refresh.strategy';
 import { AdminGuard } from '../../guards/admin.guard';
 import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
+import { ConviteModule } from '../convite/convite.module';
 
 @Module({
   imports: [
     PrismaModule,
     PassportModule,
+    ConviteModule,
     JwtModule.register({
       secret: process.env.JWT_ACCESS_SECRET || 'your-secret-key-change-this',
       signOptions: { expiresIn: (process.env.JWT_ACCESS_EXPIRATION || '15m') as any },

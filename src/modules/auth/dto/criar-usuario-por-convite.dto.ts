@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsBoolean, IsEmail, IsNotEmpty, IsOptional, IsString, MinLength } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsOptional, IsString, MinLength, IsArray, IsNumber, ArrayMinSize, Min, Max } from 'class-validator';
 
-export class CriarUsuarioDto {
+export class CriarUsuarioPorConviteDto {
   @ApiProperty({
     description: 'Email do usuário',
     example: 'usuario@exemplo.com',
@@ -32,12 +32,16 @@ export class CriarUsuarioDto {
   nome: string;
 
   @ApiProperty({
-    description: 'Se o usuário é admin',
-    example: false,
+    description: 'IDs dos livros a serem vinculados (obrigatório quando tipo de acesso do convite é LIVRE)',
+    example: [1, 2, 3, 5, 10],
     required: false,
+    type: [Number],
   })
   @IsOptional()
-  @IsBoolean({ message: 'O is_admin deve ser um booleano' })
-  is_admin?: boolean;
+  @IsArray({ message: 'livros_ids deve ser um array' })
+  @IsNumber({}, { each: true, message: 'Cada item de livros_ids deve ser um número' })
+  @Min(1, { each: true, message: 'Cada ID de livro deve ser maior ou igual a 1' })
+  @Max(66, { each: true, message: 'Cada ID de livro deve ser menor ou igual a 66' })
+  livros_ids?: number[];
 }
 
