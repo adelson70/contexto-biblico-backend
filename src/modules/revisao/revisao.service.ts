@@ -40,9 +40,8 @@ export class RevisaoService {
 
     // Buscar comentários de revisão
     const comentariosWhere: any = {};
-    if (status) {
-      comentariosWhere.status = status;
-    }
+    // Se não houver filtro de status, mostrar apenas pendentes por padrão
+    comentariosWhere.status = status || StatusRevisaoEnum.NAO_REVISADO;
     
     // Se houver search ou nomeUsuario, buscar tanto no conteúdo quanto nos usuários
     if (searchTerm) {
@@ -64,9 +63,8 @@ export class RevisaoService {
 
     // Buscar referências de revisão
     const referenciasWhere: any = {};
-    if (status) {
-      referenciasWhere.status = status;
-    }
+    // Se não houver filtro de status, mostrar apenas pendentes por padrão
+    referenciasWhere.status = status || StatusRevisaoEnum.NAO_REVISADO;
     
     // Se houver search ou nomeUsuario, buscar tanto na referência quanto nos usuários
     if (searchTerm) {
@@ -353,9 +351,15 @@ export class RevisaoService {
         },
       });
 
-      // Remover da tabela de revisão após aprovação
-      await this.prisma.comentario_revisao.delete({
+      // Atualizar status para APROVADO mantendo o registro no banco
+      await this.prisma.comentario_revisao.update({
         where: { id },
+        data: {
+          status: StatusRevisaoEnum.APROVADO,
+          motivo: dto.motivo || null,
+          revisado_por_id: revisadorId,
+          revisado_em: new Date(),
+        },
       });
 
       return {
@@ -387,9 +391,15 @@ export class RevisaoService {
         },
       });
 
-      // Remover da tabela de revisão após aprovação
-      await this.prisma.referencia_revisao.delete({
+      // Atualizar status para APROVADO mantendo o registro no banco
+      await this.prisma.referencia_revisao.update({
         where: { id },
+        data: {
+          status: StatusRevisaoEnum.APROVADO,
+          motivo: dto.motivo || null,
+          revisado_por_id: revisadorId,
+          revisado_em: new Date(),
+        },
       });
 
       return {
