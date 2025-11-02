@@ -8,9 +8,10 @@ import { AuthModule } from '../auth/auth.module';
 import { ConviteModule } from '../convite/convite.module';
 import { PrismaModule } from '../prisma/prisma.module';
 import { StatsModule } from '../stats/stats.module';
+import { RevisaoModule } from '../revisao/revisao.module';
 
 @Module({
-  imports: [PrismaModule, PesquisaModule, ReferenciaModule, ComentarioModule, AuthModule, ConviteModule, StatsModule],
+  imports: [PrismaModule, PesquisaModule, ReferenciaModule, ComentarioModule, AuthModule, ConviteModule, StatsModule, RevisaoModule],
   controllers: [AppController],
   providers: [AppService],
 })

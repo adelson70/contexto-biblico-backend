@@ -18,10 +18,23 @@ export class ComentarioService {
     userId: number,
     isAdmin: boolean,
   ): Promise<CriarComentarioResponse> {
+    // VERIFICAR NO BANCO se o usuário é realmente admin (segurança extra)
+    const usuario = await this.prisma.usuarios.findUnique({
+      where: { id: userId },
+      select: { is_admin: true, isDeleted: true },
+    });
+
+    if (!usuario || usuario.isDeleted) {
+      throw new ForbiddenException('Usuário não encontrado');
+    }
+
+    // Usar o valor do banco de dados, não o parâmetro recebido
+    const usuarioEAdmin = usuario.is_admin === true;
+
     // Validar permissão do livro
     const temPermissao = await this.livrosPermissaoService.validarPermissaoLivro(
       userId,
-      isAdmin,
+      usuarioEAdmin,
       comentarioDto.livro,
     );
 
@@ -31,6 +44,31 @@ export class ComentarioService {
       );
     }
 
+    // Se não for admin, criar na tabela de revisão
+    // APENAS se o usuário for realmente admin no banco de dados
+    if (!usuarioEAdmin) {
+      const comentarioRevisao = await this.prisma.comentario_revisao.create({
+        data: {
+          livro: comentarioDto.livro,
+          capitulo: comentarioDto.capitulo,
+          versiculo: comentarioDto.versiculo,
+          texto: comentarioDto.texto,
+          criado_por_id: userId,
+          status: 'NAO_REVISADO' as any,
+        },
+      });
+
+      return {
+        id: comentarioRevisao.id,
+        livro: comentarioRevisao.livro,
+        capitulo: comentarioRevisao.capitulo,
+        versiculo: comentarioRevisao.versiculo,
+        texto: comentarioRevisao.texto,
+        message: 'Comentário enviado para revisão',
+      };
+    }
+
+    // Se for admin, criar diretamente na tabela principal
     const comentario = await this.prisma.comentarios.create({
       data: {
         livro: comentarioDto.livro,

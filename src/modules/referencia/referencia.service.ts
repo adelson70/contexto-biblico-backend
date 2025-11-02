@@ -20,10 +20,23 @@ export class ReferenciaService {
     userId: number,
     isAdmin: boolean,
   ): Promise<CriarReferenciaResponse> {
+    // VERIFICAR NO BANCO se o usuário é realmente admin (segurança extra)
+    const usuario = await this.prisma.usuarios.findUnique({
+      where: { id: userId },
+      select: { is_admin: true, isDeleted: true },
+    });
+
+    if (!usuario || usuario.isDeleted) {
+      throw new ForbiddenException('Usuário não encontrado');
+    }
+
+    // Usar o valor do banco de dados, não o parâmetro recebido
+    const usuarioEAdmin = usuario.is_admin === true;
+
     // Validar permissão do livro
     const temPermissao = await this.livrosPermissaoService.validarPermissaoLivro(
       userId,
-      isAdmin,
+      usuarioEAdmin,
       referenciaDto.livro,
     );
 
@@ -33,6 +46,31 @@ export class ReferenciaService {
       );
     }
 
+    // Se não for admin, criar na tabela de revisão
+    // APENAS se o usuário for realmente admin no banco de dados
+    if (!usuarioEAdmin) {
+      const referenciaRevisao = await this.prisma.referencia_revisao.create({
+        data: {
+          referencia: referenciaDto.referencia,
+          livro: referenciaDto.livro,
+          capitulo: referenciaDto.capitulo,
+          versiculo: referenciaDto.versiculo,
+          criado_por_id: userId,
+          status: 'NAO_REVISADO' as any,
+        },
+      });
+
+      return {
+        id: referenciaRevisao.id,
+        referencia: referenciaRevisao.referencia,
+        livro: referenciaRevisao.livro,
+        capitulo: referenciaRevisao.capitulo,
+        versiculo: referenciaRevisao.versiculo,
+        message: 'Referência enviada para revisão',
+      };
+    }
+
+    // Se for admin, criar diretamente na tabela principal
     const referencia = await this.prisma.referencias.create({
       data: {
         referencia: referenciaDto.referencia,
@@ -220,10 +258,23 @@ export class ReferenciaService {
     userId: number,
     isAdmin: boolean,
   ): Promise<VincularReferenciaResponseDTO> {
+    // VERIFICAR NO BANCO se o usuário é realmente admin (segurança extra)
+    const usuario = await this.prisma.usuarios.findUnique({
+      where: { id: userId },
+      select: { is_admin: true, isDeleted: true },
+    });
+
+    if (!usuario || usuario.isDeleted) {
+      throw new ForbiddenException('Usuário não encontrado');
+    }
+
+    // Usar o valor do banco de dados, não o parâmetro recebido
+    const usuarioEAdmin = usuario.is_admin === true;
+
     // Validar permissão do livro
     const temPermissao = await this.livrosPermissaoService.validarPermissaoLivro(
       userId,
-      isAdmin,
+      usuarioEAdmin,
       referenciaDto.livro,
     );
 
@@ -233,6 +284,31 @@ export class ReferenciaService {
       );
     }
 
+    // Se não for admin, criar na tabela de revisão
+    // APENAS se o usuário for realmente admin no banco de dados
+    if (!usuarioEAdmin) {
+      const referenciaRevisao = await this.prisma.referencia_revisao.create({
+        data: {
+          referencia: referenciaDto.referencia,
+          livro: referenciaDto.livro,
+          capitulo: referenciaDto.capitulo,
+          versiculo: referenciaDto.versiculo,
+          criado_por_id: userId,
+          status: 'NAO_REVISADO' as any,
+        },
+      });
+
+      return {
+        id: referenciaRevisao.id,
+        referencia: referenciaRevisao.referencia,
+        livro: referenciaRevisao.livro,
+        capitulo: referenciaRevisao.capitulo,
+        versiculo: referenciaRevisao.versiculo,
+        message: 'Referência enviada para revisão',
+      };
+    }
+
+    // Se for admin, criar diretamente na tabela principal
     const referencia = await this.prisma.referencias.create({
       data: {
         referencia: referenciaDto.referencia,

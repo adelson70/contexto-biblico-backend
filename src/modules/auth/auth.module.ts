@@ -25,6 +25,6 @@ import { ConviteModule } from '../convite/convite.module';
   ],
   controllers: [AuthController],
   providers: [AuthService, BcryptService, GeolocalizacaoService, Logger, JwtStrategy, JwtRefreshStrategy, AdminGuard, JwtAuthGuard],
-  exports: [AuthService],
+  exports: [AuthService, AdminGuard, JwtAuthGuard],
 })
 export class AuthModule {}

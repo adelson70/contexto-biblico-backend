@@ -14,6 +14,12 @@ enum TipoAcessoLivros {
   LIVRE
 }
 
+enum StatusRevisao {
+  NAO_REVISADO
+  APROVADO
+  REPROVADO
+}
+
 model comentarios {
   id        Int      @id @default(autoincrement())
   livro String
@@ -71,9 +77,13 @@ model usuarios {
   updatedAt        DateTime @default(now())
   isDeleted        Boolean  @default(false)
 
-  logins           usuario_logins[]
-  livros_acesso    usuario_livros[]
-  convites_criados convites[]
+  logins                    usuario_logins[]
+  livros_acesso             usuario_livros[]
+  convites_criados          convites[]
+  comentarios_revisao_criados comentario_revisao[] @relation("ComentarioRevisaoCriadoPor")
+  comentarios_revisao_revisados comentario_revisao[] @relation("ComentarioRevisaoRevisadoPor")
+  referencias_revisao_criadas referencia_revisao[] @relation("ReferenciaRevisaoCriadoPor")
+  referencias_revisao_revisadas referencia_revisao[] @relation("ReferenciaRevisaoRevisadoPor")
 
   @@index([email])
   @@index([isDeleted])
@@ -146,4 +156,52 @@ model convite_livros {
   @@unique([convite_id, livro_id])
   @@index([convite_id])
   @@index([livro_id])
+}
+
+model comentario_revisao {
+  id            Int           @id @default(autoincrement())
+  livro         String
+  capitulo      Int
+  versiculo     Int
+  texto         String         @db.Text
+  status        StatusRevisao  @default(NAO_REVISADO)
+  motivo        String?
+  criado_por_id Int
+  revisado_por_id Int?
+  revisado_em   DateTime?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @default(now())
+
+  criado_por    usuarios       @relation("ComentarioRevisaoCriadoPor", fields: [criado_por_id], references: [id], onDelete: Cascade)
+  revisado_por  usuarios?      @relation("ComentarioRevisaoRevisadoPor", fields: [revisado_por_id], references: [id], onDelete: SetNull)
+
+  @@index([status])
+  @@index([criado_por_id])
+  @@index([criado_por_id, status])
+  @@index([livro, capitulo, versiculo])
+  @@index([status, createdAt])
+}
+
+model referencia_revisao {
+  id            Int           @id @default(autoincrement())
+  livro         String
+  capitulo      Int
+  versiculo     Int
+  referencia    String
+  status        StatusRevisao  @default(NAO_REVISADO)
+  motivo        String?
+  criado_por_id Int
+  revisado_por_id Int?
+  revisado_em   DateTime?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @default(now())
+
+  criado_por    usuarios       @relation("ReferenciaRevisaoCriadoPor", fields: [criado_por_id], references: [id], onDelete: Cascade)
+  revisado_por  usuarios?      @relation("ReferenciaRevisaoRevisadoPor", fields: [revisado_por_id], references: [id], onDelete: SetNull)
+
+  @@index([status])
+  @@index([criado_por_id])
+  @@index([criado_por_id, status])
+  @@index([livro, capitulo, versiculo])
+  @@index([status, createdAt])
 }

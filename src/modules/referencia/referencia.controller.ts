@@ -30,8 +30,10 @@ export class ReferenciaController {
     @Req() request: Request,
   ): Promise <CriarReferenciaResponse> {
     const user = request.user as any;
-    this.logger.log("Criando referência")
-    return this.referenciaService.criarReferencia(referenciaDto, user.userId, user.isAdmin)
+    // Garantir que isAdmin seja boolean explicitamente - APENAS true (boolean) é admin
+    const isAdmin = Boolean(user.isAdmin === true || user.isAdmin === 'true' || String(user.isAdmin).toLowerCase() === 'true');
+    this.logger.log(`Criando referência - isAdmin: ${isAdmin}, user.isAdmin: ${user.isAdmin}, type: ${typeof user.isAdmin}`)
+    return this.referenciaService.criarReferencia(referenciaDto, user.userId, isAdmin)
   }
 
   @Get()
@@ -61,8 +63,10 @@ export class ReferenciaController {
     @Req() request: Request,
   ): Promise<VincularReferenciaResponseDTO> {
     const user = request.user as any;
-    this.logger.log("Vinculando referência")
-    return this.referenciaService.vincularReferencia(referenciaDto, user.userId, user.isAdmin)
+    // Garantir que isAdmin seja boolean explicitamente
+    const isAdmin = user.isAdmin === true || user.isAdmin === 'true' || String(user.isAdmin).toLowerCase() === 'true';
+    this.logger.log(`Vinculando referência - isAdmin: ${isAdmin}, user.isAdmin: ${user.isAdmin}, type: ${typeof user.isAdmin}`)
+    return this.referenciaService.vincularReferencia(referenciaDto, user.userId, isAdmin)
   }
 
   @Patch(':id/desvincular')

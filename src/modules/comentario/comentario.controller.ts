@@ -43,8 +43,10 @@ export class ComentarioController {
     @Req() request: Request,
   ): Promise <CriarComentarioResponse> {
     const user = request.user as any;
-    this.logger.log("Criando comentario")
-    return this.comentarioService.criarComentario(comentarioDto, user.userId, user.isAdmin)
+    // Garantir que isAdmin seja boolean explicitamente
+    const isAdmin = user.isAdmin === true || user.isAdmin === 'true' || String(user.isAdmin).toLowerCase() === 'true';
+    this.logger.log(`Criando comentario - isAdmin: ${isAdmin}, user.isAdmin: ${user.isAdmin}, type: ${typeof user.isAdmin}`)
+    return this.comentarioService.criarComentario(comentarioDto, user.userId, isAdmin)
   }
 
   @Delete(':id')
