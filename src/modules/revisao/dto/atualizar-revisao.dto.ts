@@ -13,6 +13,28 @@ export class AtualizarComentarioRevisaoDTO {
   @SanitizeText()
   @Length(1, 3000, { message: 'O texto deve ter entre 1 e 3000 caracteres' })
   texto: string;
+
+  @ApiProperty({
+    description: 'Nome do livro bíblico',
+    example: 'Gênesis',
+    required: false
+  })
+  @IsString({ message: 'O livro deve ser uma string' })
+  livro?: string;
+
+  @ApiProperty({
+    description: 'Número do capítulo',
+    example: 1,
+    required: false
+  })
+  capitulo?: number;
+
+  @ApiProperty({
+    description: 'Número do versículo',
+    example: 1,
+    required: false
+  })
+  versiculo?: number;
 }
 
 export class AtualizarReferenciaRevisaoDTO {
@@ -24,6 +46,28 @@ export class AtualizarReferenciaRevisaoDTO {
   @IsString({ message: 'A referência deve ser uma string' })
   @IsNotEmpty({ message: 'A referência não pode estar vazia' })
   referencia: string;
+
+  @ApiProperty({
+    description: 'Nome do livro bíblico',
+    example: 'Gênesis',
+    required: false
+  })
+  @IsString({ message: 'O livro deve ser uma string' })
+  livro?: string;
+
+  @ApiProperty({
+    description: 'Número do capítulo',
+    example: 1,
+    required: false
+  })
+  capitulo?: number;
+
+  @ApiProperty({
+    description: 'Número do versículo',
+    example: 1,
+    required: false
+  })
+  versiculo?: number;
 }
 
 export class AtualizarRevisaoResponse {

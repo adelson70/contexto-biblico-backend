@@ -488,18 +488,34 @@ export class RevisaoService {
 
       const comentarioDto = dto as AtualizarComentarioRevisaoDTO;
 
+      const dataUpdate: any = {
+        texto: comentarioDto.texto,
+        updatedAt: new Date(),
+      };
+
+      // Atualizar livro, capítulo e versículo se fornecidos
+      if (comentarioDto.livro !== undefined) {
+        dataUpdate.livro = comentarioDto.livro;
+      }
+      if (comentarioDto.capitulo !== undefined) {
+        dataUpdate.capitulo = comentarioDto.capitulo;
+      }
+      if (comentarioDto.versiculo !== undefined) {
+        dataUpdate.versiculo = comentarioDto.versiculo;
+      }
+
       const revisaoAtualizada = await this.prisma.comentario_revisao.update({
         where: { id },
-        data: {
-          texto: comentarioDto.texto,
-          updatedAt: new Date(),
-        },
+        data: dataUpdate,
       });
 
       return {
         id,
         tipo: TipoRevisaoEnum.COMENTARIO,
         dados: {
+          livro: revisaoAtualizada.livro,
+          capitulo: revisaoAtualizada.capitulo,
+          versiculo: revisaoAtualizada.versiculo,
           texto: revisaoAtualizada.texto,
         },
         message: 'Revisão atualizada com sucesso',
@@ -519,18 +535,34 @@ export class RevisaoService {
 
       const referenciaDto = dto as AtualizarReferenciaRevisaoDTO;
 
+      const dataUpdate: any = {
+        referencia: referenciaDto.referencia,
+        updatedAt: new Date(),
+      };
+
+      // Atualizar livro, capítulo e versículo se fornecidos
+      if (referenciaDto.livro !== undefined) {
+        dataUpdate.livro = referenciaDto.livro;
+      }
+      if (referenciaDto.capitulo !== undefined) {
+        dataUpdate.capitulo = referenciaDto.capitulo;
+      }
+      if (referenciaDto.versiculo !== undefined) {
+        dataUpdate.versiculo = referenciaDto.versiculo;
+      }
+
       const revisaoAtualizada = await this.prisma.referencia_revisao.update({
         where: { id },
-        data: {
-          referencia: referenciaDto.referencia,
-          updatedAt: new Date(),
-        },
+        data: dataUpdate,
       });
 
       return {
         id,
         tipo: TipoRevisaoEnum.REFERENCIA,
         dados: {
+          livro: revisaoAtualizada.livro,
+          capitulo: revisaoAtualizada.capitulo,
+          versiculo: revisaoAtualizada.versiculo,
           referencia: revisaoAtualizada.referencia,
         },
         message: 'Revisão atualizada com sucesso',
