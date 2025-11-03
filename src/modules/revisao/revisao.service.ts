@@ -151,10 +151,14 @@ export class RevisaoService {
       },
       status: item.status as StatusRevisaoEnum,
       motivo: item.motivo,
-      criadoPor: {
+      criadoPor: item.criado_por && item.criado_por.id > 0 ? {
         id: item.criado_por.id,
         nome: item.criado_por.nome,
         email: item.criado_por.email,
+      } : {
+        id: 0,
+        nome: null,
+        email: 'anônimo',
       },
       revisadoPor: item.revisado_por
         ? {
@@ -179,10 +183,14 @@ export class RevisaoService {
       },
       status: item.status as StatusRevisaoEnum,
       motivo: item.motivo,
-      criadoPor: {
+      criadoPor: item.criado_por && item.criado_por.id > 0 ? {
         id: item.criado_por.id,
         nome: item.criado_por.nome,
         email: item.criado_por.email,
+      } : {
+        id: 0,
+        nome: null,
+        email: 'anônimo',
       },
       revisadoPor: item.revisado_por
         ? {
@@ -251,10 +259,14 @@ export class RevisaoService {
         },
         status: revisao.status as StatusRevisaoEnum,
         motivo: revisao.motivo,
-        criadoPor: {
+        criadoPor: revisao.criado_por && revisao.criado_por.id > 0 ? {
           id: revisao.criado_por.id,
           nome: revisao.criado_por.nome,
           email: revisao.criado_por.email,
+        } : {
+          id: 0,
+          nome: null,
+          email: 'anônimo',
         },
         revisadoPor: revisao.revisado_por
           ? {
@@ -303,10 +315,14 @@ export class RevisaoService {
         },
         status: revisao.status as StatusRevisaoEnum,
         motivo: revisao.motivo,
-        criadoPor: {
+        criadoPor: revisao.criado_por && revisao.criado_por.id > 0 ? {
           id: revisao.criado_por.id,
           nome: revisao.criado_por.nome,
           email: revisao.criado_por.email,
+        } : {
+          id: 0,
+          nome: null,
+          email: 'anônimo',
         },
         revisadoPor: revisao.revisado_por
           ? {

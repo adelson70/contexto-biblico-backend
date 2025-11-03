@@ -80,4 +80,15 @@ export class ComentarioController {
     this.logger.log("Atualizando comentario")
     return this.comentarioService.atualizarComentario(id, comentarioDto, user.userId, user.isAdmin)
   }
+
+  @Post('sugestao')
+  @ApiOperation({ summary: 'Criar uma sugestão de comentário (anônimo)' })
+  @ApiStandardResponse(201, 'Sugestão de comentário criada com sucesso', CriarComentarioResponse)
+  @ApiErrorResponse(400, 'Dados inválidos')
+  async sugerirComentario(
+    @Body() comentarioDto: CriarComentarioDTO,
+  ): Promise<CriarComentarioResponse> {
+    this.logger.log("Criando sugestão de comentário anônimo")
+    return this.comentarioService.criarComentario(comentarioDto, 0, false)
+  }
 }

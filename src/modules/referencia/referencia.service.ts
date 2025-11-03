@@ -258,6 +258,32 @@ export class ReferenciaService {
     userId: number,
     isAdmin: boolean,
   ): Promise<VincularReferenciaResponseDTO> {
+    // Se userId = 0, é uma sugestão anônima
+    const isAnonymous = userId === 0;
+    
+    if (isAnonymous) {
+      // Para sugestões anônimas, criar diretamente na tabela de revisão
+      const referenciaRevisao = await this.prisma.referencia_revisao.create({
+        data: {
+          referencia: referenciaDto.referencia,
+          livro: referenciaDto.livro,
+          capitulo: referenciaDto.capitulo,
+          versiculo: referenciaDto.versiculo,
+          criado_por_id: userId,
+          status: 'NAO_REVISADO' as any,
+        },
+      });
+
+      return {
+        id: referenciaRevisao.id,
+        referencia: referenciaRevisao.referencia,
+        livro: referenciaRevisao.livro,
+        capitulo: referenciaRevisao.capitulo,
+        versiculo: referenciaRevisao.versiculo,
+        message: 'Sugestão de referência enviada com sucesso',
+      };
+    }
+
     // VERIFICAR NO BANCO se o usuário é realmente admin (segurança extra)
     const usuario = await this.prisma.usuarios.findUnique({
       where: { id: userId },

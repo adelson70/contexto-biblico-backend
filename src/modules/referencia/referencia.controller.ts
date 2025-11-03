@@ -85,4 +85,15 @@ export class ReferenciaController {
     this.logger.log("Desvinculando referência")
     return this.referenciaService.desvincularReferencia(id, user.userId, user.isAdmin)
   }
+
+  @Post('sugestao')
+  @ApiOperation({ summary: 'Criar uma sugestão de referência (anônimo)' })
+  @ApiStandardResponse(201, 'Sugestão de referência criada com sucesso', VincularReferenciaResponseDTO)
+  @ApiErrorResponse(400, 'Dados inválidos')
+  async sugerirReferencia(
+    @Body() referenciaDto: VincularReferenciaDTO,
+  ): Promise<VincularReferenciaResponseDTO> {
+    this.logger.log("Criando sugestão de referência anônima")
+    return this.referenciaService.vincularReferencia(referenciaDto, 0, false)
+  }
 }

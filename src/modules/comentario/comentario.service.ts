@@ -18,6 +18,32 @@ export class ComentarioService {
     userId: number,
     isAdmin: boolean,
   ): Promise<CriarComentarioResponse> {
+    // Se userId = 0, é uma sugestão anônima
+    const isAnonymous = userId === 0;
+    
+    if (isAnonymous) {
+      // Para sugestões anônimas, criar diretamente na tabela de revisão
+      const comentarioRevisao = await this.prisma.comentario_revisao.create({
+        data: {
+          livro: comentarioDto.livro,
+          capitulo: comentarioDto.capitulo,
+          versiculo: comentarioDto.versiculo,
+          texto: comentarioDto.texto,
+          criado_por_id: userId,
+          status: 'NAO_REVISADO' as any,
+        },
+      });
+
+      return {
+        id: comentarioRevisao.id,
+        livro: comentarioRevisao.livro,
+        capitulo: comentarioRevisao.capitulo,
+        versiculo: comentarioRevisao.versiculo,
+        texto: comentarioRevisao.texto,
+        message: 'Sugestão de comentário enviada com sucesso',
+      };
+    }
+
     // VERIFICAR NO BANCO se o usuário é realmente admin (segurança extra)
     const usuario = await this.prisma.usuarios.findUnique({
       where: { id: userId },
