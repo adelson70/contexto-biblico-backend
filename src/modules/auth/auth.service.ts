@@ -82,7 +82,10 @@ export class AuthService {
     const skip = (page - 1) * limit;
 
     // Construir filtros
-    const where: any = { isDeleted: false };
+    const where: any = { 
+      isDeleted: false,
+      id: { not: 0 }, // Excluir usuário anônimo (id 0)
+    };
 
     if (nome) {
       where.nome = {
