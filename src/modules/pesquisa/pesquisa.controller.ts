@@ -7,6 +7,8 @@ import { LivroBiblicaloInfoResponseDto } from './dto/livro-info-response.dto';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { ApiStandardResponse, ApiErrorResponse } from '../../common/decorators/api-response.decorator';
 import { RegistroPesquisaInterceptor } from '../../common/interceptors/registro-pesquisa.interceptor';
+import { ReferenciasTextoRequestDto } from './dto/referencias-texto-request.dto';
+import { ReferenciaTextoDto } from './dto/referencias-texto-response.dto';
 
 @ApiTags('Pesquisa')
 @Controller('pesquisa')
@@ -36,6 +38,16 @@ export class PesquisaController {
   async buscarVersiculos(@Body() pesquisaDto: PesquisaRequestDto): Promise<PesquisaResponseDto> {
     this.logger.log("Pesquisando versiculos")
     return await this.pesquisaService.buscarVersiculos(pesquisaDto);
+  }
+
+  @Post('referencias-texto')
+  @ApiOperation({ summary: 'Buscar textos dos versículos referenciados' })
+  @ApiStandardResponse(200, 'Referências recuperadas com sucesso', ReferenciaTextoDto, true)
+  @ApiErrorResponse(400, 'Referência inválida')
+  async buscarTextoReferencias(
+    @Body() referenciaDto: ReferenciasTextoRequestDto,
+  ): Promise<ReferenciaTextoDto[]> {
+    return this.pesquisaService.buscarTextoReferencias(referenciaDto);
   }
 
   @Get()

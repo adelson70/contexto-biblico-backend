@@ -8,6 +8,8 @@ import { CapituloInvalidoException } from './exceptions/capitulo-invalido.except
 import { PrismaService } from '../../modules/prisma/prisma.service';
 import { BibliaService } from '../../common/services/biblia.service';
 import * as livrosInfo from '../../data/livros-info.json';
+import { ReferenciasTextoRequestDto } from './dto/referencias-texto-request.dto';
+import { ReferenciaTextoDto } from './dto/referencias-texto-response.dto';
 
 @Injectable()
 export class PesquisaService {
@@ -18,6 +20,7 @@ export class PesquisaService {
 
   // Regex para validar formato de capítulo
   private readonly REGEX_CAPITULO = /^\d+$/;
+  private readonly REGEX_REFERENCIA = /^(.+?)\s+(\d+)(?::([\d,\s\-–]+))?$/i;
 
   async buscarVersiculos(pesquisaDto: PesquisaRequestDto): Promise<PesquisaResponseDto> {
     // Valida formato do capítulo
@@ -119,6 +122,85 @@ export class PesquisaService {
     };
   }
 
+  async buscarTextoReferencias(
+    { referencias }: ReferenciasTextoRequestDto,
+  ): Promise<ReferenciaTextoDto[]> {
+    const resultados: ReferenciaTextoDto[] = [];
+
+    for (const referenciaBruta of referencias) {
+      const referenciaNormalizada = referenciaBruta.trim();
+
+      if (!referenciaNormalizada) {
+        throw new HttpException(
+          {
+            statusCode: HttpStatus.BAD_REQUEST,
+            message: 'Referência não pode ser vazia',
+            error: 'Referência inválida',
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      const parsed = this.parseReferencia(referenciaNormalizada);
+      const livro = this.bibliaService.buscarLivro(parsed.livro);
+
+      if (!livro) {
+        throw new HttpException(
+          {
+            statusCode: HttpStatus.BAD_REQUEST,
+            message: `Livro "${parsed.livro}" não encontrado na referência "${referenciaNormalizada}"`,
+            error: 'Livro inválido',
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      if (parsed.capitulo < 1 || parsed.capitulo > livro.chapters.length) {
+        throw new HttpException(
+          {
+            statusCode: HttpStatus.BAD_REQUEST,
+            message: `Capítulo ${parsed.capitulo} não encontrado em "${livro.name}"`,
+            error: 'Capítulo inválido',
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      const versiculosCapitulo = livro.chapters[parsed.capitulo - 1];
+      const versiculosSelecionados =
+        parsed.versiculos && parsed.versiculos.length > 0
+          ? parsed.versiculos
+          : versiculosCapitulo.map((_, index) => index + 1);
+
+      const versiculosComTexto = versiculosSelecionados.map((numeroVersiculo) => {
+        if (numeroVersiculo < 1 || numeroVersiculo > versiculosCapitulo.length) {
+          throw new HttpException(
+            {
+              statusCode: HttpStatus.BAD_REQUEST,
+              message: `Versículo ${numeroVersiculo} não existe em ${livro.name} ${parsed.capitulo}`,
+              error: 'Versículo inválido',
+            },
+            HttpStatus.BAD_REQUEST,
+          );
+        }
+
+        return {
+          numero: numeroVersiculo,
+          texto: versiculosCapitulo[numeroVersiculo - 1],
+        };
+      });
+
+      resultados.push({
+        referenciaSolicitada: referenciaNormalizada,
+        livro: livro.name,
+        capitulo: parsed.capitulo,
+        versiculos: versiculosComTexto,
+      });
+    }
+
+    return resultados;
+  }
+
   async listarLivrosBiblicalos(): Promise<LivroBiblicaloResponseDto[]> {
     const todosLivros = this.bibliaService.getTodosLivros();
     
@@ -166,5 +248,119 @@ export class PesquisaService {
       capitulos,
       totalCapitulos: capitulos.length
     };
+  }
+
+  private parseReferencia(referencia: string): {
+    livro: string;
+    capitulo: number;
+    versiculos: number[] | null;
+  } {
+    const referenciaSanitizada = referencia
+      .replace(/[–—]/g, '-')
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    const match = referenciaSanitizada.match(this.REGEX_REFERENCIA);
+
+    if (!match) {
+      throw new HttpException(
+        {
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: `Formato inválido para a referência "${referencia}"`,
+          error: 'Formato inválido',
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    const [, livroParte, capituloParte, versiculosParte] = match;
+    const capitulo = parseInt(capituloParte, 10);
+
+    if (!Number.isInteger(capitulo) || capitulo <= 0) {
+      throw new HttpException(
+        {
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: `Capítulo inválido na referência "${referencia}"`,
+          error: 'Capítulo inválido',
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    const versiculos = versiculosParte
+      ? this.parseVersiculos(versiculosParte, referencia)
+      : null;
+
+    return {
+      livro: livroParte,
+      capitulo,
+      versiculos,
+    };
+  }
+
+  private parseVersiculos(versiculosParte: string, referenciaCompleta: string): number[] {
+    const versiculosSanitizados = versiculosParte
+      .split(',')
+      .map((parte) => parte.trim())
+      .filter((parte) => parte.length > 0);
+
+    if (versiculosSanitizados.length === 0) {
+      throw new HttpException(
+        {
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: `Versículos ausentes na referência "${referenciaCompleta}"`,
+          error: 'Versículo inválido',
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    const numeros = new Set<number>();
+
+    versiculosSanitizados.forEach((segmento) => {
+      if (segmento.includes('-')) {
+        const [inicioParte, fimParte] = segmento.split('-').map((parte) => parte.trim());
+        const inicio = parseInt(inicioParte, 10);
+        const fim = parseInt(fimParte, 10);
+
+        if (
+          !Number.isInteger(inicio) ||
+          !Number.isInteger(fim) ||
+          inicio <= 0 ||
+          fim <= 0 ||
+          fim < inicio
+        ) {
+          throw new HttpException(
+            {
+              statusCode: HttpStatus.BAD_REQUEST,
+              message: `Intervalo de versículos inválido em "${referenciaCompleta}"`,
+              error: 'Versículo inválido',
+            },
+            HttpStatus.BAD_REQUEST,
+          );
+        }
+
+        for (let numero = inicio; numero <= fim; numero += 1) {
+          numeros.add(numero);
+        }
+      } else {
+        const numero = parseInt(segmento, 10);
+
+        if (!Number.isInteger(numero) || numero <= 0) {
+          throw new HttpException(
+            {
+              statusCode: HttpStatus.BAD_REQUEST,
+              message: `Versículo inválido em "${referenciaCompleta}"`,
+              error: 'Versículo inválido',
+            },
+            HttpStatus.BAD_REQUEST,
+          );
+        }
+
+        numeros.add(numero);
+      }
+    });
+
+    return Array.from(numeros).sort((a, b) => a - b);
   }
 }
