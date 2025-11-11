@@ -1,4 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
+import type { Prisma } from "generated/prisma";
 
 export class CriarComentarioResponse {
     @ApiProperty({
@@ -30,6 +31,13 @@ export class CriarComentarioResponse {
         example: 'Este é um comentário sobre o versículo'
     })
     texto: string;
+
+    @ApiProperty({
+        description: 'Conteúdo rico do comentário em formato Draft.js',
+        required: false,
+        type: () => Object,
+    })
+    richText?: Prisma.JsonValue | null;
 
     @ApiProperty({
         description: 'Mensagem personalizada (opcional)',

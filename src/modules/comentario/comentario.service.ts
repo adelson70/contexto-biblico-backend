@@ -5,6 +5,17 @@ import { CriarComentarioResponse } from './dto/comentario-response.dto';
 import { ListarComentariosQueryDTO, ListarComentariosResponse, ComentarioItemResponse } from './dto/comentario-listar.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { LivrosPermissaoService } from '../../common/services/livros-permissao.service';
+import { Prisma } from 'generated/prisma';
+
+const mapRichTextInput = (
+  value: Prisma.JsonValue | null | undefined,
+): Prisma.NullableJsonNullValueInput | Prisma.InputJsonValue | undefined => {
+  if (value === undefined) {
+    return undefined;
+  }
+
+  return value === null ? Prisma.JsonNull : (value as Prisma.InputJsonValue);
+};
 
 @Injectable()
 export class ComentarioService {
@@ -23,12 +34,16 @@ export class ComentarioService {
     
     if (isAnonymous) {
       // Para sugestões anônimas, criar diretamente na tabela de revisão
+      const richTextInput = mapRichTextInput(comentarioDto.richText);
       const comentarioRevisao = await this.prisma.comentario_revisao.create({
         data: {
           livro: comentarioDto.livro,
           capitulo: comentarioDto.capitulo,
           versiculo: comentarioDto.versiculo,
           texto: comentarioDto.texto,
+          ...(richTextInput !== undefined
+            ? { richText: richTextInput }
+            : {}),
           criado_por_id: userId,
           status: 'NAO_REVISADO' as any,
         },
@@ -40,6 +55,7 @@ export class ComentarioService {
         capitulo: comentarioRevisao.capitulo,
         versiculo: comentarioRevisao.versiculo,
         texto: comentarioRevisao.texto,
+        richText: comentarioRevisao.richText ?? null,
         message: 'Sugestão de comentário enviada com sucesso',
       };
     }
@@ -73,12 +89,16 @@ export class ComentarioService {
     // Se não for admin, criar na tabela de revisão
     // APENAS se o usuário for realmente admin no banco de dados
     if (!usuarioEAdmin) {
+      const richTextInput = mapRichTextInput(comentarioDto.richText);
       const comentarioRevisao = await this.prisma.comentario_revisao.create({
         data: {
           livro: comentarioDto.livro,
           capitulo: comentarioDto.capitulo,
           versiculo: comentarioDto.versiculo,
           texto: comentarioDto.texto,
+          ...(richTextInput !== undefined
+            ? { richText: richTextInput }
+            : {}),
           criado_por_id: userId,
           status: 'NAO_REVISADO' as any,
         },
@@ -90,17 +110,22 @@ export class ComentarioService {
         capitulo: comentarioRevisao.capitulo,
         versiculo: comentarioRevisao.versiculo,
         texto: comentarioRevisao.texto,
+        richText: comentarioRevisao.richText ?? null,
         message: 'Comentário enviado para revisão',
       };
     }
 
     // Se for admin, criar diretamente na tabela principal
+    const richTextInput = mapRichTextInput(comentarioDto.richText);
     const comentario = await this.prisma.comentarios.create({
       data: {
         livro: comentarioDto.livro,
         capitulo: comentarioDto.capitulo,
         versiculo: comentarioDto.versiculo,
         texto: comentarioDto.texto,
+        ...(richTextInput !== undefined
+          ? { richText: richTextInput }
+          : {}),
       },
     });
 
@@ -110,6 +135,7 @@ export class ComentarioService {
       capitulo: comentario.capitulo,
       versiculo: comentario.versiculo,
       texto: comentario.texto,
+      richText: comentario.richText ?? null,
     };
   }
 
@@ -180,10 +206,14 @@ export class ComentarioService {
       );
     }
 
+    const richTextInput = mapRichTextInput(comentarioDto.richText);
     await this.prisma.comentarios.update({
       where: { id: parseInt(id) },
       data: { 
         texto: comentarioDto.texto,
+        ...(richTextInput !== undefined
+          ? { richText: richTextInput }
+          : {}),
         updatedAt: new Date(),
       },
     });
@@ -270,6 +300,7 @@ export class ComentarioService {
         texto: true,
         createdAt: true,
         updatedAt: true,
+        richText: true,
       },
     });
 

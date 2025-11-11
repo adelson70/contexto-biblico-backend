@@ -10,6 +10,7 @@ import { BibliaService } from '../../common/services/biblia.service';
 import * as livrosInfo from '../../data/livros-info.json';
 import { ReferenciasTextoRequestDto } from './dto/referencias-texto-request.dto';
 import { ReferenciaTextoDto } from './dto/referencias-texto-response.dto';
+import type { Prisma } from 'generated/prisma';
 
 @Injectable()
 export class PesquisaService {
@@ -67,7 +68,11 @@ export class PesquisaService {
       },
       select: { 
         versiculo: true,
-        texto: true 
+        texto: true,
+        richText: true
+      },
+      orderBy: {
+        createdAt: 'asc'
       }
     });
 
@@ -85,12 +90,15 @@ export class PesquisaService {
     });
 
     // Agrupa comentários por versículo
-    const comentariosPorVersiculo = new Map<number, string[]>();
+    const comentariosPorVersiculo = new Map<number, { texto: string; richText: Prisma.JsonValue | null }[]>();
     comentariosDoBanco.forEach(comentario => {
       if (!comentariosPorVersiculo.has(comentario.versiculo)) {
         comentariosPorVersiculo.set(comentario.versiculo, []);
       }
-      comentariosPorVersiculo.get(comentario.versiculo)!.push(comentario.texto);
+      comentariosPorVersiculo.get(comentario.versiculo)!.push({
+        texto: comentario.texto,
+        richText: comentario.richText ?? null
+      });
     });
 
     // Agrupa referências por versículo

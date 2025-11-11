@@ -1,7 +1,8 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsString, IsNotEmpty, IsInt, IsPositive, Length } from "class-validator";
+import { IsString, IsNotEmpty, IsInt, IsPositive, Length, IsOptional, IsObject } from "class-validator";
 import { Type } from "class-transformer";
 import { SanitizeText } from "../../../common/decorators/sanitize-text.decorator";
+import type { Prisma } from "generated/prisma";
 
 export class CriarComentarioDTO {
     @ApiProperty({
@@ -43,7 +44,30 @@ export class CriarComentarioDTO {
     @IsString({ message: 'O texto deve ser uma string' })
     @IsNotEmpty({ message: 'O texto não pode estar vazio' })
     @SanitizeText()
-    @Length(1, 1000, { message: 'O texto deve ter entre 1 e 3000 caracteres' })
+    @Length(1, 3000, { message: 'O texto deve ter entre 1 e 3000 caracteres' })
     texto: string;
+
+    @ApiProperty({
+        description: 'Conteúdo rico do comentário em formato Draft.js',
+        required: false,
+        type: () => Object,
+        example: {
+            blocks: [
+                {
+                    key: 'example',
+                    text: 'Comentário com formatação',
+                    type: 'unstyled',
+                    depth: 0,
+                    inlineStyleRanges: [{ offset: 0, length: 9, style: 'BOLD' }],
+                    entityRanges: [],
+                    data: {}
+                }
+            ],
+            entityMap: {}
+        }
+    })
+    @IsOptional()
+    @IsObject({ message: 'O richText deve ser um objeto válido' })
+    richText?: Prisma.JsonValue;
 }
 

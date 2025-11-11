@@ -1,6 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsString, IsNotEmpty, Length } from "class-validator";
+import { IsString, IsNotEmpty, Length, IsOptional, IsObject } from "class-validator";
 import { SanitizeText } from "../../../common/decorators/sanitize-text.decorator";
+import type { Prisma } from "generated/prisma";
 
 export class AtualizarComentarioRevisaoDTO {
   @ApiProperty({
@@ -35,6 +36,15 @@ export class AtualizarComentarioRevisaoDTO {
     required: false
   })
   versiculo?: number;
+
+  @ApiProperty({
+    description: 'Conteúdo rico do comentário em formato Draft.js',
+    required: false,
+    type: () => Object,
+  })
+  @IsOptional()
+  @IsObject({ message: 'O richText deve ser um objeto válido' })
+  richText?: Prisma.JsonValue;
 }
 
 export class AtualizarReferenciaRevisaoDTO {

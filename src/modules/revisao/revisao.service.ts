@@ -11,6 +11,17 @@ import { ObterRevisaoResponse } from './dto/obter-revisao.dto';
 import { AprovarRevisaoDTO, AprovarRevisaoResponse } from './dto/aprovar-revisao.dto';
 import { ReprovarRevisaoDTO, ReprovarRevisaoResponse } from './dto/reprovar-revisao.dto';
 import { AtualizarComentarioRevisaoDTO, AtualizarReferenciaRevisaoDTO, AtualizarRevisaoResponse } from './dto/atualizar-revisao.dto';
+import { Prisma } from 'generated/prisma';
+
+const mapRichTextInput = (
+  value: Prisma.JsonValue | null | undefined,
+): Prisma.NullableJsonNullValueInput | Prisma.InputJsonValue | undefined => {
+  if (value === undefined) {
+    return undefined;
+  }
+
+  return value === null ? Prisma.JsonNull : (value as Prisma.InputJsonValue);
+};
 
 @Injectable()
 export class RevisaoService {
@@ -148,6 +159,7 @@ export class RevisaoService {
         capitulo: item.capitulo,
         versiculo: item.versiculo,
         texto: item.texto,
+        richText: item.richText ?? null,
       },
       status: item.status as StatusRevisaoEnum,
       motivo: item.motivo,
@@ -256,6 +268,7 @@ export class RevisaoService {
           capitulo: revisao.capitulo,
           versiculo: revisao.versiculo,
           texto: revisao.texto,
+          richText: revisao.richText ?? null,
         },
         status: revisao.status as StatusRevisaoEnum,
         motivo: revisao.motivo,
@@ -358,12 +371,14 @@ export class RevisaoService {
       }
 
       // Criar comentário na tabela principal
+      const richTextInput = mapRichTextInput(revisao.richText);
       await this.prisma.comentarios.create({
         data: {
           livro: revisao.livro,
           capitulo: revisao.capitulo,
           versiculo: revisao.versiculo,
           texto: revisao.texto,
+          ...(richTextInput !== undefined ? { richText: richTextInput } : {}),
         },
       });
 
@@ -529,6 +544,12 @@ export class RevisaoService {
       if (comentarioDto.versiculo !== undefined) {
         dataUpdate.versiculo = comentarioDto.versiculo;
       }
+      if (comentarioDto.richText !== undefined) {
+        const richTextInput = mapRichTextInput(comentarioDto.richText);
+        if (richTextInput !== undefined) {
+          dataUpdate.richText = richTextInput;
+        }
+      }
 
       const revisaoAtualizada = await this.prisma.comentario_revisao.update({
         where: { id },
@@ -543,6 +564,7 @@ export class RevisaoService {
           capitulo: revisaoAtualizada.capitulo,
           versiculo: revisaoAtualizada.versiculo,
           texto: revisaoAtualizada.texto,
+          richText: revisaoAtualizada.richText ?? null,
         },
         message: 'Revisão atualizada com sucesso',
       };

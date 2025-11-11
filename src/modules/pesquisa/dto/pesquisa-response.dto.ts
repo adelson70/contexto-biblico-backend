@@ -1,5 +1,21 @@
 import { ApiProperty } from "@nestjs/swagger";
 import type { NomeLivro, AbreviacaoLivro } from "../../../data/biblia-nvi.type";
+import type { Prisma } from "generated/prisma";
+
+export class VersiculoComentarioDto {
+  @ApiProperty({
+    description: 'Texto puro do comentário',
+    example: 'Este versículo fala sobre a criação'
+  })
+  texto: string;
+
+  @ApiProperty({
+    description: 'Conteúdo rico do comentário em formato Draft.js',
+    required: false,
+    type: () => Object,
+  })
+  richText?: Prisma.JsonValue | null;
+}
 
 export class VersiculoComDados {
   @ApiProperty({
@@ -16,10 +32,28 @@ export class VersiculoComDados {
 
   @ApiProperty({
     description: 'Comentários associados ao versículo',
-    type: [String],
-    example: ['Este versículo fala sobre a criação']
+    type: [VersiculoComentarioDto],
+    example: [
+      {
+        texto: 'Comentário resumido',
+        richText: {
+          blocks: [
+            {
+              key: 'abc',
+              text: 'Comentário resumido',
+              type: 'unstyled',
+              depth: 0,
+              inlineStyleRanges: [{ offset: 0, length: 9, style: 'BOLD' }],
+              entityRanges: [],
+              data: {}
+            }
+          ],
+          entityMap: {}
+        }
+      }
+    ]
   })
-  comentarios: string[];
+  comentarios: VersiculoComentarioDto[];
 
   @ApiProperty({
     description: 'Referências bíblicas relacionadas ao versículo',

@@ -1,6 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsString, IsOptional, IsPositive, Min, IsEnum } from "class-validator";
 import { Type } from "class-transformer";
+import type { Prisma } from "generated/prisma";
 
 export enum TipoRevisaoEnum {
   COMENTARIO = 'COMENTARIO',
@@ -123,6 +124,13 @@ export class ComentarioRevisaoDados {
     example: 'Este é um comentário sobre o versículo'
   })
   texto: string;
+
+  @ApiProperty({
+    description: 'Conteúdo rico do comentário em formato Draft.js',
+    required: false,
+    type: () => Object,
+  })
+  richText?: Prisma.JsonValue | null;
 }
 
 export class ReferenciaRevisaoDados {

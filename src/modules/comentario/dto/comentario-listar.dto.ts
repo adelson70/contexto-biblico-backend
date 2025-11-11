@@ -1,6 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsString, IsNotEmpty, IsOptional, IsPositive, Min } from "class-validator";
 import { Type } from "class-transformer";
+import type { Prisma } from "generated/prisma";
 
 export class ListarComentariosQueryDTO {
     @ApiProperty({
@@ -68,6 +69,13 @@ export class ComentarioItemResponse {
         example: 'Este é um comentário sobre o versículo'
     })
     texto: string;
+
+  @ApiProperty({
+      description: 'Conteúdo rico do comentário em formato Draft.js',
+      required: false,
+      type: () => Object,
+  })
+    richText?: Prisma.JsonValue | null;
 
     @ApiProperty({
         description: 'Data de criação',
