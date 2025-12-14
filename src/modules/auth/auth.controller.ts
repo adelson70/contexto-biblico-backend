@@ -20,6 +20,9 @@ import { DesvincularLivroUsuarioResponseDto } from './dto/desvincular-livro-usua
 import { ListarLivrosUsuarioResponseDto } from './dto/listar-livros-usuario.dto';
 import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
 import { AdminGuard } from '../../guards/admin.guard';
+import { RateLimitGuard } from '../../guards/rate-limit.guard';
+import { RateLimit } from '../../common/decorators/rate-limit.decorator';
+import { RateLimitService } from '../../common/services/rate-limit.service';
 
 @ApiTags('Usuário')
 @Controller('auth')
@@ -27,6 +30,7 @@ export class AuthController {
   constructor(
     private readonly authService: AuthService,
     private logger: Logger,
+    private readonly rateLimitService: RateLimitService,
   ) {}
 
   @Get()
@@ -196,6 +200,11 @@ export class AuthController {
   }
 
   @Post('login')
+  @UseGuards(RateLimitGuard)
+  @RateLimit({
+    maxAttempts: parseInt(process.env.LOGIN_RATE_LIMIT_MAX_ATTEMPTS || '3', 10),
+    windowMs: parseInt(process.env.LOGIN_RATE_LIMIT_WINDOW_MINUTES || '15', 10) * 60 * 1000,
+  })
   @ApiOperation({ summary: 'Fazer login' })
   @ApiResponse({
     status: 200,
@@ -205,6 +214,10 @@ export class AuthController {
   @ApiResponse({
     status: 401,
     description: 'Credenciais inválidas',
+  })
+  @ApiResponse({
+    status: 429,
+    description: 'Muitas tentativas. Tente novamente em 15 minutos.',
   })
   async login(
     @Body() loginDto: LoginDto,
@@ -247,6 +260,9 @@ export class AuthController {
 
     // Registra o login do usuário
     await this.authService.registrarLogin(result.userId, ip);
+
+    // Limpa tentativas de rate limiting após login bem-sucedido
+    this.rateLimitService.clearAttemptsForRequest(request);
 
     this.logger.log(`Login bem-sucedido: ${loginDto.email} - IP: ${ip}`);
     

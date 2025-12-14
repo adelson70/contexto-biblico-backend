@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsNotEmpty, IsOptional, IsString, MinLength, IsArray, IsNumber, ArrayMinSize, Min, Max } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsOptional, IsString, MinLength, MaxLength, IsArray, IsNumber, ArrayMinSize, Min, Max } from 'class-validator';
 
 export class CriarUsuarioPorConviteDto {
   @ApiProperty({
@@ -12,14 +12,16 @@ export class CriarUsuarioPorConviteDto {
   email: string;
 
   @ApiProperty({
-    description: 'Senha do usuário (mínimo 6 caracteres)',
+    description: 'Senha do usuário (mínimo 6 caracteres, máximo 20 caracteres)',
     example: 'senha123',
     required: true,
     minLength: 6,
+    maxLength: 20,
   })
   @IsString({ message: 'A senha deve ser uma string' })
   @IsNotEmpty({ message: 'A senha não pode estar vazia' })
   @MinLength(6, { message: 'A senha deve ter no mínimo 6 caracteres' })
+  @MaxLength(20, { message: 'A senha deve ter no máximo 20 caracteres' })
   senha: string;
 
   @ApiProperty({

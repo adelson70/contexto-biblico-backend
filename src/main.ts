@@ -56,6 +56,8 @@ async function bootstrap() {
   )
 
 
+  // Configuração do Swagger
+  if (process.env.NODE_ENV !== 'production') {
   const config = new DocumentBuilder()
     .setTitle('Contexto Biblico API')
     .setDescription('API do Contexto Biblico')
@@ -76,11 +78,12 @@ async function bootstrap() {
       in: 'cookie',
       name: 'refresh_token',
     })
-    .build();
-  
-    const document = SwaggerModule.createDocument(app, config);
-  
-  SwaggerModule.setup('docs', app, document, {customSiteTitle: 'Contexto Biblico API'});
+      .build();
+    
+      const document = SwaggerModule.createDocument(app, config);
+    
+    SwaggerModule.setup('docs', app, document, {customSiteTitle: 'Contexto Biblico API'});
+  }
 
   await app.listen(process.env.PORT ?? 5000)
     .then(() => {

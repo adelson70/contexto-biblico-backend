@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsBoolean, IsEmail, IsOptional, IsString, MinLength } from 'class-validator';
+import { IsBoolean, IsEmail, IsOptional, IsString, MinLength, MaxLength } from 'class-validator';
 
 export class AtualizarUsuarioDto {
   @ApiProperty({
@@ -12,14 +12,16 @@ export class AtualizarUsuarioDto {
   email?: string;
 
   @ApiProperty({
-    description: 'Senha do usuário (mínimo 6 caracteres)',
+    description: 'Senha do usuário (mínimo 6 caracteres, máximo 20 caracteres)',
     example: 'senha123',
     required: false,
     minLength: 6,
+    maxLength: 20,
   })
   @IsOptional()
   @IsString({ message: 'A senha deve ser uma string' })
   @MinLength(6, { message: 'A senha deve ter no mínimo 6 caracteres' })
+  @MaxLength(20, { message: 'A senha deve ter no máximo 20 caracteres' })
   senha?: string;
 
   @ApiProperty({
