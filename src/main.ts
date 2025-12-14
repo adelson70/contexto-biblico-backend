@@ -56,8 +56,8 @@ async function bootstrap() {
   )
 
 
-  // Configuração do Swagger
-  if (process.env.NODE_ENV !== 'production') {
+  // Configuração do Swagger Apenas em ambiente de desenvolvimento
+  if (process.env.NODE_ENV === 'development') {
   const config = new DocumentBuilder()
     .setTitle('Contexto Biblico API')
     .setDescription('API do Contexto Biblico')
